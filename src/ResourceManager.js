@@ -56,6 +56,12 @@ class ResourceManager {
     getArmUV4Path() {
         return this.getAppConfig().get('MDK.Uv4Path') || 'null';
     }
+    getWinePath() {
+        return this.getAppConfig().get("Wine.Path") || 'wine';
+    }
+    getWinePrefixPath() {
+        return this.getAppConfig().get("Wine.PrefixPath") || '';
+    }
     getProjectExcludeList() {
         return this.getAppConfig().get('Project.ExcludeList') || [];
     }

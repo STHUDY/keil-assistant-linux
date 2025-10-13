@@ -1,8 +1,8 @@
 {
-    "name": "keil-assistant-new",
-    "displayName": "Keil Assistant New",
+    "name": "keil-assistant-linux",
+    "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
-    "version": "2.1.8",
+    "version": "1.0.0",
     "publisher": "candycium",
     "author": {
         "name": "Rui Wang"
@@ -15,7 +15,7 @@
         "stm32",
         "arm"
     ],
-    "homepage": "https://github.com/ruiwarn/keil-assistant",
+    "homepage": "https://github.com/STHUDY/keil-assistant-linux",
     "engines": {
         "vscode": "^1.85.0"
     },
@@ -32,32 +32,44 @@
     "main": "./dist/src/extension.js",
     "repository": {
         "type": "git",
-        "url": "https://github.com/ruiwarn/keil-assistant"
+        "url": "https://github.com/STHUDY/keil-assistant-linux"
     },
     "bugs": {
-        "url": "https://github.com/ruiwarn/keil-assistant/issues"
+        "url": "https://github.com/STHUDY/keil-assistant-linux/issues"
     },
     "contributes": {
         "configuration": [
             {
-                "title": "Keil Assistant",
+                "title": "Keil Assistant Linux",
                 "properties": {
                     "KeilAssistant.C51.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
-                        "markdownDescription": "C51 UV4.exe 的绝对路径。例如：`C:\\Keil_v5\\UV4\\UV4.exe`\n\n请确保设置正确的路径，否则插件将无法正常工作。",
+                        "markdownDescription": "%keil.c51.uv4path.description%",
                         "default": ""
                     },
                     "KeilAssistant.MDK.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
-                        "markdownDescription": "MDK UV4.exe 的绝对路径。例如：`C:\\Keil_v5\\UV4\\UV4.exe`\n\n请确保设置正确的路径，否则插件将无法正常工作。",
+                        "markdownDescription": "%keil.mdk.uv4path.description%",
+                        "default": ""
+                    },
+                    "KeilAssistant.Wine.Path": {
+                        "type": "string",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.wine.path.description%",
+                        "default": ""
+                    },
+                    "KeilAssistant.Wine.PrefixPath": {
+                        "type": "string",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.wine.prefix.description%",
                         "default": ""
                     },
                     "KeilAssistant.Project.ExcludeList": {
                         "type": "array",
                         "scope": "resource",
-                        "markdownDescription": "uVision project file name exclude list",
+                        "markdownDescription": "%keil.project.exclude.description%",
                         "default": [
                             "template.uvproj",
                             "template.uvprojx"
@@ -66,7 +78,7 @@
                     "KeilAssistant.Project.FileLocationList": {
                         "type": "array",
                         "scope": "resource",
-                        "markdownDescription": "uVision project file locations",
+                        "markdownDescription": "%keil.project.locations.description%",
                         "default": []
                     }
                 }
@@ -118,14 +130,6 @@
                 }
             },
             {
-                "command": "project.download",
-                "title": "Download To Device",
-                "icon": {
-                    "light": "./res/icons/TransferDownload_16x.svg",
-                    "dark": "./res/icons/TransferDownload_16x.svg"
-                }
-            },
-            {
                 "command": "item.copyValue",
                 "title": "Copy Item Value",
                 "icon": {
@@ -167,11 +171,6 @@
                     "when": "viewItem == Target"
                 },
                 {
-                    "command": "project.download",
-                    "group": "inline",
-                    "when": "viewItem == Target"
-                },
-                {
                     "command": "item.copyValue",
                     "group": "inline",
                     "when": "viewItem == Source"
@@ -186,10 +185,6 @@
             {
                 "command": "project.rebuild",
                 "key": "ctrl+alt+f7"
-            },
-            {
-                "command": "project.download",
-                "key": "ctrl+alt+d"
             }
         ],
         "snippets": [

@@ -1,0 +1,8 @@
+{
+    "keil.c51.uv4path.description": "C51 UV4.exe 的绝对路径（.wine里面）。例如：`C:/Keil_v5/UV4/UV4.exe`\n\n请确保设置正确的路径，否则插件将无法正常工作。",
+    "keil.mdk.uv4path.description": "MDK UV4.exe 的绝对路径（.wine里面）。例如：`C:/Keil_v5/UV4/UV4.exe`\n\n请确保设置正确的路径，否则插件将无法正常工作。",
+    "keil.wine.path.description": "wine 可执行文件路径。留空则使用系统 PATH 中的 wine，否则插件将无法正常工作。",
+    "keil.wine.prefix.description": "wine 环境绝对路径。例如：`/home/wine/.wine`，否则插件将无法正常工作。",
+    "keil.project.exclude.description": "uVision 项目文件名排除列表",
+    "keil.project.locations.description": "uVision 项目文件位置"
+}

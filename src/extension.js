@@ -78,7 +78,7 @@ function activate(context) {
     subscriber.push(vscode.commands.registerCommand('project.close', (item) => prjExplorer.closeProject(item.prjID)));
     subscriber.push(vscode.commands.registerCommand('project.build', (item) => { var _a; return (_a = prjExplorer.getTarget(item)) === null || _a === void 0 ? void 0 : _a.build(); }));
     subscriber.push(vscode.commands.registerCommand('project.rebuild', (item) => { var _a; return (_a = prjExplorer.getTarget(item)) === null || _a === void 0 ? void 0 : _a.rebuild(); }));
-    subscriber.push(vscode.commands.registerCommand('project.download', (item) => { var _a; return (_a = prjExplorer.getTarget(item)) === null || _a === void 0 ? void 0 : _a.download(); }));
+    // subscriber.push(vscode.commands.registerCommand('project.download', (item) => { var _a; return (_a = prjExplorer.getTarget(item)) === null || _a === void 0 ? void 0 : _a.download(); }));
     subscriber.push(vscode.commands.registerCommand('item.copyValue', (item) => vscode.env.clipboard.writeText(item.tooltip || '')));
     subscriber.push(vscode.commands.registerCommand('project.switch', (item) => prjExplorer.switchTargetByProject(item)));
     subscriber.push(vscode.commands.registerCommand('project.active', (item) => prjExplorer.activeProject(item)));
@@ -464,7 +464,8 @@ class Target {
                         }
                     }
                     for (const file of fileList) {
-                        const f = new File_1.File(this.project.toAbsolutePath(file['FilePath']));
+                        // Fix Path
+                        const f = new File_1.File(this.project.toAbsolutePath(file['FilePath'].replace(/\\/g, "/")));
                         let isFileExcluded = isGroupExcluded;
                         if (isFileExcluded === false && file['FileOption']) { // check file is enable
                             const fOption = file['FileOption']['CommonProperty'];
@@ -486,15 +487,19 @@ class Target {
     quoteString(str, quote = '"') {
         return str.includes(' ') ? (quote + str + quote) : str;
     }
-    runTask(name, commands) {
+    runWineTask(name, commands) {
         const resManager = ResourceManager_1.ResourceManager.getInstance();
         let args = [];
         args.push('-o', this.uv4LogFile.path);
         args = args.concat(commands);
-        const isCmd = /cmd.exe$/i.test(vscode.env.shell);
-        const quote = isCmd ? '"' : '\'';
-        const invokePrefix = isCmd ? '' : '& ';
-        const cmdPrefixSuffix = isCmd ? '"' : '';
+        // const isCmd = /cmd.exe$/i.test(vscode.env.shell);
+        // const quote = isCmd ? '"' : '\'';
+        // const invokePrefix = isCmd ? '' : '& ';
+        // const cmdPrefixSuffix = isCmd ? '"' : '';
+        // let commandLine = invokePrefix + this.quoteString(resManager.getBuilderExe(), quote) + ' ';
+
+        const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
+
         let commandLine = invokePrefix + this.quoteString(resManager.getBuilderExe(), quote) + ' ';
         commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
         // use task
@@ -524,14 +529,14 @@ class Target {
         }
     }
     build() {
-        this.runTask('build', this.getBuildCommand());
+        this.runWineTask('build', this.getBuildCommand());
     }
     rebuild() {
-        this.runTask('rebuild', this.getRebuildCommand());
+        this.runWineTask('rebuild', this.getRebuildCommand());
     }
-    download() {
-        this.runTask('download', this.getDownloadCommand());
-    }
+    // download() {
+    //     this.runWineTask('download', this.getDownloadCommand());
+    // }
     updateSourceRefs() {
         const rePath = this.getOutputFolder(this.targetDOM);
         if (rePath) {
@@ -639,14 +644,14 @@ class C51Target extends Target {
             '-c', '${uv4Path} -r ${prjPath} -j0 -t ${targetName}'
         ];
     }
-    getDownloadCommand() {
-        return [
-            '--uv4Path', ResourceManager_1.ResourceManager.getInstance().getC51UV4Path(),
-            '--prjPath', this.project.uvprjFile.path,
-            '--targetName', this.targetName,
-            '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
-        ];
-    }
+    // getDownloadCommand() {
+    //     return [
+    //         '--uv4Path', ResourceManager_1.ResourceManager.getInstance().getC51UV4Path(),
+    //         '--prjPath', this.project.uvprjFile.path,
+    //         '--targetName', this.targetName,
+    //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+    //     ];
+    // }
 }
 class MacroHandler {
     constructor() {
@@ -689,14 +694,14 @@ class ArmTarget extends Target {
             const line = _line[_line.length - 1] === '\\' ? _line.substring(0, _line.length - 1) : _line; // remove char '\'
             const subLines = line.trim().split(/(?<![\\:]) /);
             if (lineIndex === 0) // first line
-             {
+            {
                 for (let i = 1; i < subLines.length; i++) // skip first sub line
-                 {
+                {
                     resultList.add(subLines[i].trim().replace(/\\ /g, " "));
                 }
             }
             else // other lines, first char is whitespace
-             {
+            {
                 subLines.forEach((item) => {
                     resultList.add(item.trim().replace(/\\ /g, " "));
                 });
@@ -747,11 +752,11 @@ class ArmTarget extends Target {
             const mHandler = new MacroHandler();
             lines.filter((line) => { return line.trim() !== ''; })
                 .forEach((line) => {
-                const value = mHandler.toExpression(line);
-                if (value) {
-                    resList.push(value);
-                }
-            });
+                    const value = mHandler.toExpression(line);
+                    if (value) {
+                        resList.push(value);
+                    }
+                });
             return resList;
         }
         catch (error) {
@@ -800,14 +805,14 @@ class ArmTarget extends Target {
             '-c', '${uv4Path} -r ${prjPath} -j0 -t ${targetName}'
         ];
     }
-    getDownloadCommand() {
-        return [
-            '--uv4Path', ResourceManager_1.ResourceManager.getInstance().getArmUV4Path(),
-            '--prjPath', this.project.uvprjFile.path,
-            '--targetName', this.targetName,
-            '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
-        ];
-    }
+    // getDownloadCommand() {
+    //     return [
+    //         '--uv4Path', ResourceManager_1.ResourceManager.getInstance().getArmUV4Path(),
+    //         '--prjPath', this.project.uvprjFile.path,
+    //         '--targetName', this.targetName,
+    //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+    //     ];
+    // }
 }
 ArmTarget.armccMacros = [
     '__CC_ARM',

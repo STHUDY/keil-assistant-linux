@@ -23,16 +23,16 @@ function showMessage(message: string, type: 'info' | 'warning' | 'error' = 'info
     // 生成消息的唯一标识
     const messageKey = `${message}-${type}`;
     const now = Date.now();
-    
+
     // 检查是否在防重复时间内
     const lastShowTime = messageDebouncer.get(messageKey);
     if (lastShowTime && (now - lastShowTime) < 2000) { // 2秒内的相同消息不重复显示
         return;
     }
-    
+
     // 更新显示时间
     messageDebouncer.set(messageKey, now);
-    
+
     // 2秒后清除记录
     setTimeout(() => {
         messageDebouncer.delete(messageKey);
@@ -40,10 +40,10 @@ function showMessage(message: string, type: 'info' | 'warning' | 'error' = 'info
 
     const options = { modal: false };
     let promise: Thenable<string | undefined>;
-    
-    switch(type) {
+
+    switch (type) {
         case 'info':
-            promise = items ? 
+            promise = items ?
                 vscode.window.showInformationMessage(message, ...items) :
                 vscode.window.showInformationMessage(message, options);
             break;
@@ -92,10 +92,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.tasks.onDidEndTaskProcess(async (event) => {
         const task = event.execution.task;
         // Check if it's our Keil task and it's a build or rebuild
-        if (task.definition.type === 'keil-task' && 
+        if (task.definition.type === 'keil-task' &&
             (task.name === 'build' || task.name === 'rebuild') &&
             task.definition.prjID && task.definition.targetName) {
-            
+
             const prjID = task.definition.prjID as string;
             const targetName = task.definition.targetName as string;
 
@@ -135,14 +135,14 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }));
 
-    subscriber.push(vscode.commands.registerCommand('keil.download', () => {
-        const target = prjExplorer.getTarget();
-        if (target) {
-            target.download();
-        } else {
-            showMessage('请先选择一个工程！', 'warning');
-        }
-    }));
+    // subscriber.push(vscode.commands.registerCommand('keil.download', () => {
+    //     const target = prjExplorer.getTarget();
+    //     if (target) {
+    //         target.download();
+    //     } else {
+    //         showMessage('请先选择一个工程！', 'warning');
+    //     }
+    // }));
 
     subscriber.push(vscode.commands.registerCommand('explorer.open', async () => {
         try {
@@ -163,7 +163,7 @@ export function activate(context: vscode.ExtensionContext) {
             for (const file of allFiles) {
                 const content = await vscode.workspace.fs.readFile(file);
                 const xmlContent = content.toString();
-                
+
                 // 检查是否是 C51 工程
                 if (xmlContent.includes('TargetOption') && xmlContent.includes('Target51') && xmlContent.includes('C51')) {
                     hasC51Project = true;
@@ -237,12 +237,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     subscriber.push(vscode.commands.registerCommand('project.rebuild', (item: IView) => prjExplorer.getTarget(item)?.rebuild()));
 
-    subscriber.push(vscode.commands.registerCommand('project.download', (item: IView) => prjExplorer.getTarget(item)?.download()));
+    // subscriber.push(vscode.commands.registerCommand('project.download', (item: IView) => prjExplorer.getTarget(item)?.download()));
 
     subscriber.push(vscode.commands.registerCommand('item.copyValue', (item: IView) => vscode.env.clipboard.writeText(item.tooltip || '')));
 
     subscriber.push(vscode.commands.registerCommand('project.switch', (item: IView) => prjExplorer.switchTargetByProject(item)));
-    
+
     subscriber.push(vscode.commands.registerCommand('project.active', (item: IView) => prjExplorer.activeProject(item)));
 
     prjExplorer.loadWorkspace();
@@ -467,7 +467,7 @@ class KeilProject implements IView, KeilProjectInfo {
             console.error(`Keil Assistant: Failed to create project storage directory at ${this.projectStorageDir.path}`, error);
             // Fallback or error handling if directory creation fails - for now, log and continue
         }
-        
+
         const logPath = node_path.join(this.projectStorageDir.path, 'keil-assistant.log');
         this.logger = new console.Console(fs.createWriteStream(logPath, { flags: 'a+' }));
         this.watcher = new FileWatcher(this.uvprjFile);
@@ -611,7 +611,7 @@ class KeilProject implements IView, KeilProjectInfo {
     private async loadFiles() {
         // ... existing code ...
         for (const file of this.files) {
-            const relativePath = PathUtils.toRelativePath(file['FilePath']);
+            const relativePath = PathUtils.toRelativePath(file['FilePath'].replace(/\\/g, "/"));
             const f = new File(PathUtils.toAbsolutePath(relativePath));
             // ... rest of the code ...
         }
@@ -687,14 +687,14 @@ abstract class Target implements IView {
 
     static async getInstance(prjInfo: KeilProjectInfo, uvInfo: uVisonInfo, targetDOM: any): Promise<Target> {
         // 检查是否是 C51 工程
-        const isC51Project = targetDOM['TargetOption'] && 
-                            targetDOM['TargetOption']['Target51'] && 
-                            targetDOM['TargetOption']['Target51']['C51'];
+        const isC51Project = targetDOM['TargetOption'] &&
+            targetDOM['TargetOption']['Target51'] &&
+            targetDOM['TargetOption']['Target51']['C51'];
 
         // 检查是否是 ARM 工程
-        const isArmProject = targetDOM['TargetOption'] && 
-                            (targetDOM['TargetOption']['TargetCommonOption'] || 
-                             targetDOM['TargetOption']['TargetArmAds']);
+        const isArmProject = targetDOM['TargetOption'] &&
+            (targetDOM['TargetOption']['TargetCommonOption'] ||
+                targetDOM['TargetOption']['TargetArmAds']);
 
         if (isC51Project && !isArmProject) {
             return new C51Target(prjInfo, uvInfo, targetDOM);
@@ -714,8 +714,8 @@ abstract class Target implements IView {
                 throw new Error('未选择工程类型');
             }
 
-            return selection.target === 'C51' ? 
-                new C51Target(prjInfo, uvInfo, targetDOM) : 
+            return selection.target === 'C51' ?
+                new C51Target(prjInfo, uvInfo, targetDOM) :
                 new ArmTarget(prjInfo, uvInfo, targetDOM);
         }
     }
@@ -744,7 +744,7 @@ abstract class Target implements IView {
             // Fallback to project directory if no workspace
             vscodeDir = node_path.join(this.project.uvprjFile.dir, '.vscode');
         }
-        
+
         // Ensure .vscode directory exists
         try {
             if (!fs.existsSync(vscodeDir)) {
@@ -878,7 +878,7 @@ abstract class Target implements IView {
 
                 for (const file of fileList) {
                     // 直接使用project.toAbsolutePath处理路径
-                    const f = new File(this.project.toAbsolutePath(file['FilePath']));
+                    const f = new File(this.project.toAbsolutePath(file['FilePath'].replace(/\\/g, "/")));
 
                     let isFileExcluded = isGroupExcluded;
                     if (isFileExcluded === false && file['FileOption']) { // check file is enable
@@ -906,7 +906,7 @@ abstract class Target implements IView {
         return str.includes(' ') ? (quote + str + quote) : str;
     }
 
-    private runTask(name: string, commands: string[]) {
+    private runWineTask(name: string, commands: string[]) {
 
         const resManager = ResourceManager.getInstance();
         let args: string[] = [];
@@ -921,23 +921,31 @@ abstract class Target implements IView {
         // use task
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
 
-            const taskDefinition = { 
-                type: 'keil-task', 
+            const taskDefinition = {
+                type: 'keil-task',
                 prjID: this.project.prjID,       // Add prjID to definition
                 targetName: this.targetName      // Add targetName to definition
             };
             // Using TaskScope.Workspace as project-specific details are in definition
-            const task = new vscode.Task(taskDefinition, vscode.TaskScope.Workspace, name, 'shell'); 
+            const task = new vscode.Task(taskDefinition, vscode.TaskScope.Workspace, name, 'shell');
             const options: vscode.ShellExecutionOptions = { cwd: this.project.uvprjFile.dir };
-            
+
+            // conbine command
+            const quote = '\'';
+            const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
+
+            let commandLine = invokePrefix + this.quoteString(builderExe, quote) + ' ';
+            commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
+
             // Use the command + args approach for better VSCode 1.103+ compatibility
-            task.execution = new vscode.ShellExecution(builderExe, args, options);
+            task.execution = new vscode.ShellExecution(commandLine, options);
+
             task.isBackground = false;
             // task.problemMatchers = this.getProblemMatcher(); // We will handle diagnostics manually
 
             // Clear previous diagnostics for this project/target when a new build starts
             diagnosticCollection.clear(); // Clears all diagnostics from this collection.
-                                          // More granular clearing might be needed if multiple projects are handled.
+            // More granular clearing might be needed if multiple projects are handled.
 
             // Log debugging information for path resolution
             this.project.logger.log(`[DEBUG] Task CWD for '${name}': '${this.project.uvprjFile.dir}'`);
@@ -983,31 +991,35 @@ abstract class Target implements IView {
 
             const terminal = vscode.window.createTerminal(name);
             terminal.show();
-            
+
             // Build command line for terminal execution
-            const isCmd = /cmd.exe$/i.test(vscode.env.shell);
-            const quote = isCmd ? '"' : '\'';
-            const invokePrefix = isCmd ? '' : '& ';
-            const cmdPrefixSuffix = isCmd ? '"' : '';
+            // const isCmd = /cmd.exe$/i.test(vscode.env.shell);
+            // const quote = isCmd ? '"' : '\'';
+            // const invokePrefix = isCmd ? '' : '& ';
+            // const cmdPrefixSuffix = isCmd ? '"' : '';
+
+            const quote = '\'';
+            const cmdPrefixSuffix = "";
+            const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
 
             let commandLine = invokePrefix + this.quoteString(builderExe, quote) + ' ';
             commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
-            
+
             terminal.sendText(cmdPrefixSuffix + commandLine + cmdPrefixSuffix);
         }
     }
 
     build() {
-        this.runTask('build', this.getBuildCommand());
+        this.runWineTask('build', this.getBuildCommand());
     }
 
     rebuild() {
-        this.runTask('rebuild', this.getRebuildCommand());
+        this.runWineTask('rebuild', this.getRebuildCommand());
     }
 
-    download() {
-        this.runTask('download', this.getDownloadCommand());
-    }
+    // download() {
+    //     this.runWineTask('download', this.getDownloadCommand());
+    // }
 
     updateSourceRefs() {
         const rePath = this.getOutputFolder(this.targetDOM);
@@ -1053,10 +1065,10 @@ abstract class Target implements IView {
     protected abstract getProblemMatcher(): string[];
     protected abstract getBuildCommand(): string[];
     protected abstract getRebuildCommand(): string[];
-    protected abstract getDownloadCommand(): string[];
+    // protected abstract getDownloadCommand(): string[];
 
     protected getFilePath(filePath: string): string {
-        return PathUtils.toAbsolutePath(PathUtils.toRelativePath(filePath));
+        return PathUtils.toAbsolutePath(PathUtils.toRelativePath(filePath.replace(/\\/g, "/")));
     }
 
     protected abstract getDiagnosticRegex(): RegExp;
@@ -1066,7 +1078,7 @@ abstract class Target implements IView {
 
         let logContent: string;
         try {
-            logContent = this.uv4LogFile.Read(); 
+            logContent = this.uv4LogFile.Read();
         } catch (e: any) {
             this.project.logger.log(`[ERROR] Failed to read log file '${this.uv4LogFile.path}': ${e.message}`);
             return;
@@ -1089,21 +1101,21 @@ abstract class Target implements IView {
 
             if (match) {
                 const rawRelativePath = match[1];
-                const lineNumber = parseInt(match[2], 10); 
+                const lineNumber = parseInt(match[2], 10);
                 const severityWord = match[3].toLowerCase();
-                const errorCode = match[4]; 
+                const errorCode = match[4];
                 const message = match[5];
                 const fullMessage = `${errorCode}: ${message}`;
-                
-                const severity = severityWord === 'error' 
-                                 ? vscode.DiagnosticSeverity.Error 
-                                 : vscode.DiagnosticSeverity.Warning;
+
+                const severity = severityWord === 'error'
+                    ? vscode.DiagnosticSeverity.Error
+                    : vscode.DiagnosticSeverity.Warning;
 
                 if (rawRelativePath && !isNaN(lineNumber) && lineNumber > 0) {
                     try {
                         const absolutePath = this.project.toAbsolutePath(rawRelativePath);
                         const uri = vscode.Uri.file(absolutePath);
-                        const range = new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 100); 
+                        const range = new vscode.Range(lineNumber - 1, 0, lineNumber - 1, 100);
 
                         const diagnostic = new vscode.Diagnostic(range, fullMessage, severity);
                         diagnostic.source = `Keil ${this.constructor.name.replace('Target', '')} Compiler`;
@@ -1118,7 +1130,7 @@ abstract class Target implements IView {
                         this.project.logger.log(`[ERROR] Error processing diagnostic line '${line}': ${e.message}`);
                     }
                 } else {
-                     this.project.logger.log(`[WARN] Could not parse diagnostic from line: ${line}`);
+                    this.project.logger.log(`[WARN] Could not parse diagnostic from line: ${line}`);
                 }
             }
         }
@@ -1235,14 +1247,14 @@ class C51Target extends Target {
         ];
     }
 
-    protected getDownloadCommand(): string[] {
-        return [
-            '--uv4Path', ResourceManager.getInstance().getC51UV4Path(),
-            '--prjPath', this.project.uvprjFile.path,
-            '--targetName', this.targetName,
-            '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
-        ];
-    }
+    // protected getDownloadCommand(): string[] {
+    //     return [
+    //         '--uv4Path', ResourceManager.getInstance().getC51UV4Path(),
+    //         '--prjPath', this.project.uvprjFile.path,
+    //         '--targetName', this.targetName,
+    //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+    //     ];
+    // }
 }
 
 class MacroHandler {
@@ -1516,12 +1528,12 @@ class ArmTarget extends Target {
         this.project.logger.log(`[DEBUG] Raw UV4 Path from config: '${rawPath}'`);
         this.project.logger.log(`[DEBUG] Raw path length: ${rawPath.length}`);
         this.project.logger.log(`[DEBUG] Raw path char codes: [${Array.from(rawPath).map(c => c.charCodeAt(0)).join(',')}]`);
-        
+
         const exeFile = new File(rawPath);
         this.project.logger.log(`[DEBUG] File object path: '${exeFile.path}'`);
         this.project.logger.log(`[DEBUG] File exists check: ${exeFile.IsExist()}`);
         this.project.logger.log(`[DEBUG] File isFile check: ${exeFile.IsFile()}`);
-        
+
         if (!exeFile.IsFile()) {
             this.project.logger.log(`[ERROR] UV4.exe not found at: ${exeFile.path}`);
             this.project.logger.log(`[ERROR] ========== Detection Failed - UV4 Not Found ==========`);
@@ -1533,28 +1545,28 @@ class ArmTarget extends Target {
             this.project.logger.log(`[ERROR] 请在 VSCode 设置中重新配置 'KeilAssistant.MDK.Uv4Path' 的值`);
             return undefined;
         }
-        
+
         const keilRoot = node_path.dirname(exeFile.dir); // C:\Keil_v5
         this.project.logger.log(`[DEBUG] Keil Root Directory: ${keilRoot}`);
         this.project.logger.log(`[DEBUG] Project uAC6 flag: ${target['uAC6']}`);
-        
+
         // 步骤1: 检测ARMCC目录是否存在，判断是否为完整的V5安装
         const armccDir = new File(`${keilRoot}${File.sep}ARM${File.sep}ARMCC${File.sep}include`);
         const armclangDir = new File(`${keilRoot}${File.sep}ARM${File.sep}ARMCLANG${File.sep}include`);
         const ac6Dir = new File(`${keilRoot}${File.sep}ARM${File.sep}AC6${File.sep}include`); // V6兼容
-        
+
         const hasARMCC = armccDir.IsDir();
         const hasARMCLANG = armclangDir.IsDir();
         const hasAC6 = ac6Dir.IsDir();
-        
+
         this.project.logger.log(`[DEBUG] Directory existence check:`);
         this.project.logger.log(`[DEBUG]   - ARMCC:    ${armccDir.path} → ${hasARMCC ? 'EXISTS' : 'NOT FOUND'}`);
         this.project.logger.log(`[DEBUG]   - ARMCLANG: ${armclangDir.path} → ${hasARMCLANG ? 'EXISTS' : 'NOT FOUND'}`);
         this.project.logger.log(`[DEBUG]   - AC6:      ${ac6Dir.path} → ${hasAC6 ? 'EXISTS' : 'NOT FOUND'}`);
-        
+
         let selectedToolName: string;
         let selectionReason: string;
-        
+
         // 步骤2: 智能选择工具链
         if (hasARMCC) {
             // 完整V5安装，使用标准uAC6判断逻辑
@@ -1577,11 +1589,11 @@ class ArmTarget extends Target {
             selectionReason = `No compiler directories found, fallback to ARMCC (most compatible)`;
             this.project.logger.log(`[WARN] ${selectionReason}: ${selectedToolName}`);
         }
-        
+
         // 步骤3: 构建目标路径并验证
         const targetIncDir = new File(`${keilRoot}${File.sep}ARM${File.sep}${selectedToolName}${File.sep}include`);
         this.project.logger.log(`[DEBUG] Target include directory: ${targetIncDir.path}`);
-        
+
         if (targetIncDir.IsDir()) {
             this.project.logger.log(`[SUCCESS] Target directory exists, scanning for subdirectories...`);
             try {
@@ -1602,19 +1614,19 @@ class ArmTarget extends Target {
             // 步骤4: 目标路径不存在，尝试所有可能的fallback路径
             this.project.logger.log(`[WARN] Target directory does not exist: ${targetIncDir.path}`);
             this.project.logger.log(`[DEBUG] Trying all possible fallback paths...`);
-            
+
             const fallbackPaths = [
                 { path: `${keilRoot}${File.sep}ARM${File.sep}ARMCLANG${File.sep}include`, name: 'ARMCLANG' },
                 { path: `${keilRoot}${File.sep}ARM${File.sep}ARMCC${File.sep}include`, name: 'ARMCC' },
                 { path: `${keilRoot}${File.sep}ARM${File.sep}AC6${File.sep}include`, name: 'AC6' }
             ];
-            
+
             for (let i = 0; i < fallbackPaths.length; i++) {
                 const { path: fallbackPath, name: toolName } = fallbackPaths[i];
                 const fallbackDir = new File(fallbackPath);
                 const exists = fallbackDir.IsDir();
                 this.project.logger.log(`[DEBUG] Fallback ${i + 1}/3 - ${toolName}: ${fallbackPath} → ${exists ? 'EXISTS' : 'NOT FOUND'}`);
-                
+
                 if (exists) {
                     this.project.logger.log(`[SUCCESS] Found working fallback path: ${fallbackPath}`);
                     try {
@@ -1633,7 +1645,7 @@ class ArmTarget extends Target {
                     }
                 }
             }
-            
+
             // 步骤5: 最终兜底 - 所有路径都不存在，返回ARMCC路径
             const finalFallbackPath = `${keilRoot}${File.sep}ARM${File.sep}ARMCC${File.sep}include`;
             this.project.logger.log(`[WARN] ========== All Paths Failed ==========`);
@@ -1692,14 +1704,14 @@ class ArmTarget extends Target {
         ];
     }
 
-    protected getDownloadCommand(): string[] {
-        return [
-            '--uv4Path', ResourceManager.getInstance().getArmUV4Path(),
-            '--prjPath', this.project.uvprjFile.path,
-            '--targetName', this.targetName,
-            '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
-        ];
-    }
+    // protected getDownloadCommand(): string[] {
+    //     return [
+    //         '--uv4Path', ResourceManager.getInstance().getArmUV4Path(),
+    //         '--prjPath', this.project.uvprjFile.path,
+    //         '--targetName', this.targetName,
+    //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+    //     ];
+    // }
 }
 
 //================================================
@@ -1716,7 +1728,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
     private currentActiveProject: KeilProject | undefined;
     private buildStatusBarItem: vscode.StatusBarItem;
     private rebuildStatusBarItem: vscode.StatusBarItem;
-    private downloadStatusBarItem: vscode.StatusBarItem;
+    // private downloadStatusBarItem: vscode.StatusBarItem;
 
     private extensionContext: vscode.ExtensionContext; // Store context
 
@@ -1739,10 +1751,10 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         this.rebuildStatusBarItem.tooltip = "重新编译当前 Keil 工程";
         this.rebuildStatusBarItem.command = 'keil.rebuild';
 
-        this.downloadStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
-        this.downloadStatusBarItem.text = "$(cloud-upload) Download";
-        this.downloadStatusBarItem.tooltip = "下载程序到目标设备";
-        this.downloadStatusBarItem.command = 'keil.download';
+        // this.downloadStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
+        // this.downloadStatusBarItem.text = "$(cloud-upload) Download";
+        // this.downloadStatusBarItem.tooltip = "下载程序到目标设备";
+        // this.downloadStatusBarItem.command = 'keil.download';
 
         // 初始更新状态栏显示
         this.updateStatusBarVisibility();
@@ -1753,11 +1765,11 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         if (hasActiveProject) {
             this.buildStatusBarItem.show();
             this.rebuildStatusBarItem.show();
-            this.downloadStatusBarItem.show();
+            // this.downloadStatusBarItem.show();
         } else {
             this.buildStatusBarItem.hide();
             this.rebuildStatusBarItem.hide();
-            this.downloadStatusBarItem.hide();
+            // this.downloadStatusBarItem.hide();
         }
     }
 
@@ -1765,11 +1777,11 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
             const workspace = new File(workspaceRoot);
-            
+
             if (workspace.IsDir()) {
                 const excludeList = ResourceManager.getInstance().getProjectExcludeList();
                 const workspaceFiles = workspace.GetList([/\.uvproj[x]?$/i], File.EMPTY_FILTER);
-                
+
                 // 获取工程文件位置列表并转换为相对路径
                 const locationFiles = ResourceManager.getInstance().getProjectFileLocationList()
                     .map(loc => {
@@ -1777,10 +1789,10 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
                         const relativePath = node_path.relative(workspaceRoot, absolutePath);
                         return new File(node_path.join(workspaceRoot, relativePath));
                     });
-                
+
                 const uvList = workspaceFiles.concat(locationFiles)
                     .filter((file) => { return !excludeList.includes(file.name); });
-                
+
                 for (const uvFile of uvList) {
                     try {
                         await this.openProject(uvFile.path);
@@ -1795,7 +1807,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
 
     async openProject(path: string): Promise<KeilProject | undefined> {
         // Pass extensionContext to KeilProject constructor
-        const nPrj = new KeilProject(new File(path), this.extensionContext); 
+        const nPrj = new KeilProject(new File(path), this.extensionContext);
         if (!this.prjList.has(nPrj.prjID)) {
             await nPrj.load();
             nPrj.on('dataChanged', () => this.updateView());
@@ -1968,7 +1980,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         // TreeDataProvider and Commands pushed to context.subscriptions are disposed by VSCode.
         this.buildStatusBarItem.dispose();
         this.rebuildStatusBarItem.dispose();
-        this.downloadStatusBarItem.dispose();
+        // this.downloadStatusBarItem.dispose();
         this.prjList.forEach(prj => prj.close()); // Ensure projects are closed
         this.prjList.clear();
         this.viewEvent.dispose();

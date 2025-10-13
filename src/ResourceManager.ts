@@ -66,7 +66,15 @@ export class ResourceManager {
     getArmUV4Path(): string {
         return this.getAppConfig().get<string>('MDK.Uv4Path') || 'null';
     }
-    
+
+    getWinePath(): string {
+        return this.getAppConfig().get<string>("Wine.Path") || 'wine';
+    }
+
+    getWinePrefixPath() {
+        return this.getAppConfig().get<string>("Wine.PrefixPath") || '';
+    }
+
     getProjectExcludeList(): string[] {
         return this.getAppConfig().get<string[]>('Project.ExcludeList') || [];
     }
