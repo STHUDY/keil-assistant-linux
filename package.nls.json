@@ -1,8 +1,8 @@
 {
     "keil.c51.uv4path.description": "Absolute path to C51 UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
     "keil.mdk.uv4path.description": "Absolute path to MDK UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
-    "keil.wine.path.description": "Path to wine executable. Leave empty to use wine from system PATH, otherwise the extension will not work properly.",
-    "keil.wine.prefix.description": "Absolute path to wine prefix. Example: `/home/wine/.wine`, otherwise the extension will not work properly.",
+    "keil.wine.path.description": "Path to wine executable. Leave empty to use wine from system PATH",
+    "keil.wine.prefix.description": "Absolute path to wine prefix. Example: `/home/wine/.wine`, Leave empty to use wine from system wine PREFIXPATH",
     "keil.project.exclude.description": "uVision project file name exclude list",
     "keil.project.locations.description": "uVision project file locations"
 }

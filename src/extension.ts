@@ -918,6 +918,12 @@ abstract class Target implements IView {
         // instead of building a single command line string
         const builderExe = resManager.getBuilderExe();
 
+        const quote = '\'';
+        const cmdPrefixSuffix = "";
+        const winePrefix = resManager.getWinePrefixPath();
+        const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
+        const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
+
         // use task
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
 
@@ -929,10 +935,6 @@ abstract class Target implements IView {
             // Using TaskScope.Workspace as project-specific details are in definition
             const task = new vscode.Task(taskDefinition, vscode.TaskScope.Workspace, name, 'shell');
             const options: vscode.ShellExecutionOptions = { cwd: this.project.uvprjFile.dir };
-
-            // conbine command
-            const quote = '\'';
-            const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
 
             let commandLine = invokePrefix + this.quoteString(builderExe, quote) + ' ';
             commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
@@ -997,10 +999,6 @@ abstract class Target implements IView {
             // const quote = isCmd ? '"' : '\'';
             // const invokePrefix = isCmd ? '' : '& ';
             // const cmdPrefixSuffix = isCmd ? '"' : '';
-
-            const quote = '\'';
-            const cmdPrefixSuffix = "";
-            const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
 
             let commandLine = invokePrefix + this.quoteString(builderExe, quote) + ' ';
             commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');

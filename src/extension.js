@@ -498,7 +498,9 @@ class Target {
         // const cmdPrefixSuffix = isCmd ? '"' : '';
         // let commandLine = invokePrefix + this.quoteString(resManager.getBuilderExe(), quote) + ' ';
 
-        const invokePrefix = 'WINEDEBUG=-all ' + resManager.getWinePrefixPath() + ' ' + resManager.getWinePath() + ' ';
+        const winePrefix = resManager.getWinePrefixPath();
+        const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
+        const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
 
         let commandLine = invokePrefix + this.quoteString(resManager.getBuilderExe(), quote) + ' ';
         commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
