@@ -3,9 +3,9 @@
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
     "version": "1.0.0",
-    "publisher": "candycium",
+    "publisher": "sthudy",
     "author": {
-        "name": "Rui Wang"
+        "name": "STHUDY"
     },
     "keywords": [
         "keil",
