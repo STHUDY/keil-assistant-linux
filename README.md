@@ -2,6 +2,8 @@
 
 ## 项目介绍
 
+[keil-assistant-linux]https://github.com/STHUDY/keil-assistant-linux
+
 本项目立志于解决Keil5在Linux上的体验，可以不离开vscode完成代码的编写、编译和烧录。
 
 ## 原始简介

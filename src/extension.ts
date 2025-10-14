@@ -1999,7 +1999,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         this.flashStatusbarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
         this.flashStatusbarItem.text = "$(cloud-upload) Flash";
         this.flashStatusbarItem.tooltip = "将程序烧录到目标设备";
-        this.flashStatusbarItem.command = 'keil.flash';
+        this.flashStatusbarItem.command = 'project.flash';
 
         // this.downloadStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
         // this.downloadStatusBarItem.text = "$(cloud-upload) Download";

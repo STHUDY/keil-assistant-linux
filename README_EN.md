@@ -2,6 +2,8 @@
 
 ## Project Introduce
 
+[keil-assistant-linux]https://github.com/STHUDY/keil-assistant-linux
+
 This Project aims to solve Keil5 in Linux, so that you can write、build and flash in vscode.
 
 ## Origin README
