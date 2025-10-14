@@ -1089,7 +1089,7 @@ abstract class Target implements IView {
                         if (refFile.IsFile()) {
                             const refFileList = this.parseRefLines(this.targetDOM, refFile.Read().split(/\r\n|\n/))
                                 .map((rePath) => {
-                                    if (isWindowsPath(rePath))
+                                    if (isWindowsPath(rePath.replace(/\\/g, "/")))
                                         return this.windowsPathToLinuxByWinePrefixPath(rePath);
                                     else
                                         return this.project.toAbsolutePath(rePath);
