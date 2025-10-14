@@ -13,8 +13,21 @@ import { ResourceManager } from './ResourceManager';
 let diagnosticCollection: vscode.DiagnosticCollection;
 import { FileWatcher } from '../lib/node_utility/FileWatcher';
 import { Time } from '../lib/node_utility/Time';
-import { isArray } from 'util';
+// import { isArray } from 'util';
 import { CmdLineHandler } from './CmdLineHandler';
+
+function isWindowsPath(path: string): boolean {
+    if (!path) return false;
+
+    // 判断规则：
+    // 1. 盘符形式，如 C:\ 或 D:/
+    // 2. 包含反斜杠（\），这是 Windows 常见路径特征
+    // 3. 排除 UNC 网络路径之外的其他特殊形式
+    const hasDriveLetter = /^[a-zA-Z]:[\\/]/.test(path);
+    const hasBackslash = path.includes('\\');
+
+    return hasDriveLetter || hasBackslash;
+}
 
 // 添加一个消息防重复显示机制
 const messageDebouncer = new Map<string, number>();
@@ -396,28 +409,38 @@ class PathUtils {
     static toRelativePath(absolutePath: string): string {
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
             // 确保路径是绝对路径
             if (!node_path.isAbsolute(absolutePath)) {
                 return absolutePath;
             }
-            // 清理可能存在的重复盘符
-            const cleanPath = absolutePath.replace(/^[a-z]:\\[a-z]:\\/i, (match) => match.substring(0, 3));
+
+            // 统一分隔符（仅使用系统默认）
+            const cleanPath = absolutePath.split(/[\\/]/).join("/");
+
             return node_path.relative(workspaceRoot, cleanPath);
         }
         return absolutePath;
     }
 
+
     static toAbsolutePath(relativePath: string): string {
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
             const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            // 如果已经是绝对路径，直接返回
-            if (node_path.isAbsolute(relativePath)) {
-                return node_path.normalize(relativePath);
+
+            // 统一路径分隔符
+            const rel = relativePath.split(/[\\/]/).join("/");
+
+            // 已经是绝对路径则直接返回
+            if (node_path.isAbsolute(rel)) {
+                return node_path.normalize(rel);
             }
-            return node_path.join(workspaceRoot, relativePath);
+
+            return node_path.join(workspaceRoot, rel);
         }
         return relativePath;
     }
+
 }
 
 class KeilProject implements IView, KeilProjectInfo {
@@ -518,7 +541,7 @@ class KeilProject implements IView, KeilProjectInfo {
         // init uVsion info
         this.uVsionFileInfo.schemaVersion = doc['Project']['SchemaVersion'];
 
-        if (isArray(targets)) {
+        if (Array.isArray(targets)) {
             for (const target of targets) {
                 const newTarget = await Target.getInstance(this, this.uVsionFileInfo, target);
                 this.targetList.push(newTarget);
@@ -545,13 +568,19 @@ class KeilProject implements IView, KeilProjectInfo {
     }
 
     toAbsolutePath(rePath: string): string {
-        const path = rePath.replace(/\//g, File.sep);
-        // 如果路径已经是绝对路径，直接返回
+        // 统一分隔符（跨平台）
+        const path = rePath.split(/[\\/]/).join(node_path.sep);
+
+        // 已经是绝对路径
         if (node_path.isAbsolute(path)) {
-            // 清理可能存在的重复盘符
-            return node_path.normalize(path.replace(/^[a-z]:\\[a-z]:\\/i, (match) => match.substring(0, 3)));
+            // if (process.platform === 'win32') {
+            //     // 清理 Windows 重复盘符
+            //     return node_path.normalize(path.replace(/^[a-z]:\\[a-z]:\\/i, (m) => m.substring(0, 3)));
+            // }
+            return node_path.normalize(path);
         }
-        // 否则，将相对路径与项目目录拼接
+
+        // 否则拼接项目目录
         return node_path.normalize(node_path.join(this.uvprjFile.dir, path));
     }
 
@@ -808,7 +837,7 @@ abstract class Target implements IView {
         }
 
         incList.forEach((path) => {
-            const realPath = path.trim();
+            const realPath = path.trim().replace(/\\/g, "/");
             if (realPath !== '') {
                 this.includes.add(this.project.toAbsolutePath(realPath));
             }
@@ -894,16 +923,43 @@ abstract class Target implements IView {
                 }
 
                 this.fGroups.push(nGrp);
+                // console.log(fileList)
+
             }
         }
 
-        this.updateCppProperties();
 
+        this.updateCppProperties();
         this.updateSourceRefs();
     }
 
     private quoteString(str: string, quote = '"'): string {
         return str.includes(' ') ? (quote + str + quote) : str;
+    }
+
+    private windowsPathToLinuxByWinePrefixPath(path: string): string {
+        if (!path) return "";
+
+        let winPath: string = path.trim();
+        let linuxPath = winPath.replace(/\\/g, "/");
+
+        const driveMatch = linuxPath.match(/^([a-zA-Z]):(\/.*)?$/);
+        if (driveMatch) {
+            const resManager = ResourceManager.getInstance();
+            const driveLetter = driveMatch[1].toLowerCase();
+            const pathRest = driveMatch[2] || "";
+
+            let winePrefix = resManager.getWinePrefixPath();
+
+            // 如果路径中包含 ~ 开头，替换成用户主目录
+            if (winePrefix.startsWith("~")) {
+                winePrefix = winePrefix.replace("~", os.homedir());
+            }
+
+            linuxPath = winePrefix + `/drive_${driveLetter}${pathRest}`;
+        }
+
+        return linuxPath;
     }
 
     private runWineTask(name: string, commands: string[]) {
@@ -951,7 +1007,7 @@ abstract class Target implements IView {
 
             // Log debugging information for path resolution
             this.project.logger.log(`[DEBUG] Task CWD for '${name}': '${this.project.uvprjFile.dir}'`);
-            const exampleCompilerPath = "..\\source\\main.c"; // Using a typical problematic path
+            const exampleCompilerPath = "../source/main.c"; // Using a typical problematic path
             try {
                 if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
                     const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
@@ -1026,10 +1082,18 @@ abstract class Target implements IView {
             this.fGroups.forEach((group) => {
                 group.sources.forEach((source) => {
                     if (source.enable) { // if source not disabled
-                        const refFile = File.fromArray([outPath, source.file.noSuffixName + '.d']);
+                        const refFile = File.fromArray([
+                            outPath,
+                            (source.file.noSuffixName + '.d').toLowerCase()
+                        ]);
                         if (refFile.IsFile()) {
                             const refFileList = this.parseRefLines(this.targetDOM, refFile.Read().split(/\r\n|\n/))
-                                .map((rePath) => { return this.project.toAbsolutePath(rePath); });
+                                .map((rePath) => {
+                                    if (isWindowsPath(rePath))
+                                        return this.windowsPathToLinuxByWinePrefixPath(rePath);
+                                    else
+                                        return this.project.toAbsolutePath(rePath);
+                                });
                             source.children = refFileList.map((refFilePath) => {
                                 return new Source(source.prjID, new File(refFilePath));
                             });
@@ -1424,7 +1488,18 @@ class ArmTarget extends Target {
 
     protected getOutputFolder(target: any): string | undefined {
         try {
-            return <string>target['TargetOption']['TargetCommonOption']['OutputDirectory'];
+            let outDir = target['TargetOption']['TargetCommonOption']['OutputDirectory'];
+            if (!outDir) return undefined;
+
+            // 统一分隔符
+            outDir = outDir.replace(/\\/g, "/");
+
+            // 去掉结尾的 `/`（如果有）
+            if (outDir.endsWith("/")) {
+                outDir = outDir.slice(0, -1);
+            }
+
+            return outDir;
         } catch (error) {
             return undefined;
         }
@@ -1499,14 +1574,23 @@ class ArmTarget extends Target {
 
     private static getArmClangMacroList(armClangPath: string): string[] {
         try {
-            const cmdLine = CmdLineHandler.quoteString(armClangPath, '"')
-                + ' ' + ['--target=arm-arm-none-eabi', '-E', '-dM', '-', '<nul'].join(' ');
+            // Linux 下使用 /dev/null 替代 nul
+
+            const resManager = ResourceManager.getInstance();
+            const winePrefix = resManager.getWinePrefixPath();
+            const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
+            const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
+
+            const cmdLine = invokePrefix + CmdLineHandler.quoteString(armClangPath, '"')
+                + ' ' + ['--target=arm-arm-none-eabi', '-E', '-dM', '-', '</dev/null'].join(' ');
+
+            // console.log(cmdLine);
 
             const lines = child_process.execSync(cmdLine).toString().split(/\r\n|\n/);
             const resList: string[] = [];
             const mHandler = new MacroHandler();
 
-            lines.filter((line) => { return line.trim() !== ''; })
+            lines.filter((line) => line.trim() !== '')
                 .forEach((line) => {
                     const value = mHandler.toExpression(line);
                     if (value) {
@@ -1516,9 +1600,12 @@ class ArmTarget extends Target {
 
             return resList;
         } catch (error) {
+            console.warn(`[Keil Assistant] getArmClangMacroList failed: ${error}`);
+            // Linux 环境下失败时返回默认宏列表
             return ['__GNUC__=4', '__GNUC_MINOR__=2', '__GNUC_PATCHLEVEL__=1'];
         }
     }
+
 
     protected getSystemIncludes(target: any): string[] | undefined {
         const rawPath = ResourceManager.getInstance().getArmUV4Path();
@@ -1961,6 +2048,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         if (element === undefined) {
             return Array.from(this.prjList.values());
         } else {
+            // console.log(this.getChildren())
             return element.getChildViews();
         }
     }

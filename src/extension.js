@@ -249,11 +249,16 @@ class KeilProject {
         this.logger.log('[info] project closed: ' + this.label);
     }
     toAbsolutePath(rePath) {
-        const path = rePath.replace(/\//g, File_1.File.sep);
-        if (/^[a-z]:/i.test(path)) {
+        // 统一分隔符（支持 Windows 和 Linux）
+        const path = rePath.split(/[\\/]/).join("/");
+
+        // 判断是否为绝对路径（跨平台）
+        if (node_path.isAbsolute(path)) {
             return node_path.normalize(path);
         }
-        return node_path.normalize(this.uvprjFile.dir + File_1.File.sep + path);
+
+        // 否则拼接到项目目录
+        return node_path.normalize(node_path.join(this.uvprjFile.dir, path));
     }
     active() {
         this.icons = { light: 'ActiveApplication_16x', dark: 'ActiveApplication_16x' };
@@ -404,7 +409,7 @@ class Target {
                 incList = incList.concat(sysIncludes);
             }
             incList.forEach((path) => {
-                const realPath = path.trim();
+                const realPath = path.trim().replace(/\\/g, "/");
                 if (realPath !== '') {
                     this.includes.add(this.project.toAbsolutePath(realPath));
                 }
@@ -542,14 +547,14 @@ class Target {
     updateSourceRefs() {
         const rePath = this.getOutputFolder(this.targetDOM);
         if (rePath) {
-            const outPath = this.project.toAbsolutePath(rePath);
+            const outPath = this.project.toAbsolutePath(rePath.replace(/\\/g, "/"));
             this.fGroups.forEach((group) => {
                 group.sources.forEach((source) => {
                     if (source.enable) { // if source not disabled
                         const refFile = File_1.File.fromArray([outPath, source.file.noSuffixName + '.d']);
                         if (refFile.IsFile()) {
                             const refFileList = this.parseRefLines(this.targetDOM, refFile.Read().split(/\r\n|\n/))
-                                .map((rePath) => { return this.project.toAbsolutePath(rePath); });
+                                .map((rePath) => { return this.project.toAbsolutePath(rePath.replace(/\\/g, "/")); });
                             source.children = refFileList.map((refFilePath) => {
                                 return new Source(source.prjID, new File_1.File(refFilePath));
                             });
@@ -747,21 +752,25 @@ class ArmTarget extends Target {
     }
     static getArmClangMacroList(armClangPath) {
         try {
+            // Linux 下使用 /dev/null 替代 Windows 的 nul
             const cmdLine = CmdLineHandler_1.CmdLineHandler.quoteString(armClangPath, '"')
-                + ' ' + ['--target=arm-arm-none-eabi', '-E', '-dM', '-', '<nul'].join(' ');
+                + ' ' + ['--target=arm-arm-none-eabi', '-E', '-dM', '-', '</dev/null'].join(' ');
+
             const lines = child_process.execSync(cmdLine).toString().split(/\r\n|\n/);
             const resList = [];
             const mHandler = new MacroHandler();
-            lines.filter((line) => { return line.trim() !== ''; })
+
+            lines.filter((line) => line.trim() !== '')
                 .forEach((line) => {
                     const value = mHandler.toExpression(line);
                     if (value) {
                         resList.push(value);
                     }
                 });
+
             return resList;
-        }
-        catch (error) {
+        } catch (error) {
+            console.warn(`[Keil Assistant] getArmClangMacroList failed: ${error}`);
             return ['__GNUC__=4', '__GNUC_MINOR__=2', '__GNUC_PATCHLEVEL__=1'];
         }
     }

@@ -72,7 +72,7 @@ export class ResourceManager {
     }
 
     getWinePrefixPath() {
-        return this.getAppConfig().get<string>("Wine.PrefixPath") || '';
+        return this.getAppConfig().get<string>("Wine.PrefixPath") || '~/.wine';
     }
 
     getProjectExcludeList(): string[] {
