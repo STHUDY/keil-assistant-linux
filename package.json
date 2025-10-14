@@ -2,7 +2,7 @@
     "name": "keil-assistant-linux",
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "publisher": "sthudy",
     "author": {
         "name": "STHUDY"
@@ -58,7 +58,7 @@
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.wine.path.description%",
-                        "default": ""
+                        "default": "wine"
                     },
                     "KeilAssistant.Wine.PrefixPath": {
                         "type": "string",
@@ -80,6 +80,21 @@
                         "scope": "resource",
                         "markdownDescription": "%keil.project.locations.description%",
                         "default": []
+                    },
+                    "KeilAssistant.flash.device": {
+                        "type": "string",
+                        "scope": "resource",
+                        "markdownDescription": "%keil.flash.device.description%",
+                        "enum": [
+                            "ST-LINK V2"
+                        ],
+                        "default": "ST-LINK V2"
+                    },
+                    "KeilAssistant.flash.st-flashPath": {
+                        "type": "string",
+                        "scope": "resource",
+                        "markdownDescription": "%keil.flash.st-flashPath.description%",
+                        "default": "st-flash"
                     }
                 }
             }
@@ -119,6 +134,14 @@
                 "icon": {
                     "light": "./res/icons/BuildSelection_16x.svg",
                     "dark": "./res/icons/BuildSelection_16x.svg"
+                }
+            },
+            {
+                "command": "project.flash",
+                "title": "Flash",
+                "icon": {
+                    "light": "./res/icons/TransferDownload_16x.svg",
+                    "dark": "./res/icons/TransferDownload_16x.svg"
                 }
             },
             {
@@ -166,6 +189,11 @@
                     "when": "viewItem == Target"
                 },
                 {
+                    "command": "project.flash",
+                    "group": "inline",
+                    "when": "viewItem == Target"
+                },
+                {
                     "command": "project.rebuild",
                     "group": "inline",
                     "when": "viewItem == Target"
@@ -181,6 +209,10 @@
             {
                 "command": "project.build",
                 "key": "f7"
+            },
+            {
+                "command": "project.flash",
+                "key": "ctrl+alt+d"
             },
             {
                 "command": "project.rebuild",

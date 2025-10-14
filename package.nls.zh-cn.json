@@ -4,5 +4,7 @@
     "keil.wine.path.description": "wine 可执行文件路径。留空则使用系统 PATH 中的 wine",
     "keil.wine.prefix.description": "wine 环境绝对路径。例如：`/home/wine/.wine`，留空则使用`~/.wine`",
     "keil.project.exclude.description": "uVision 项目文件名排除列表",
-    "keil.project.locations.description": "uVision 项目文件位置"
+    "keil.project.locations.description": "uVision 项目文件位置",
+    "keil.flash.device.description": "烧录器类型",
+    "keil.flash.st-flashPath.description": "ST-Flash 绝对路径。例如：`/usr/local/bin/st-flash`，留空则使用系统 PATH 中的 st-flash"
 }

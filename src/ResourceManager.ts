@@ -83,6 +83,14 @@ export class ResourceManager {
         return this.getAppConfig().get<string[]>('Project.FileLocationList') || [];
     }
 
+    getFlashDevice() {
+        return this.getAppConfig().get<string>("flash.device") || 'ST-LINK V2';
+    }
+
+    getSTFlashPath() {
+        return this.getAppConfig().get<string>("flash.st-flashPath") || 'st-flash';
+    }
+
     getIconByName(name: string): string | undefined {
         return this.iconMap.get(name);
     }

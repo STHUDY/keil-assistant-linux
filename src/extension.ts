@@ -252,6 +252,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // subscriber.push(vscode.commands.registerCommand('project.download', (item: IView) => prjExplorer.getTarget(item)?.download()));
 
+    subscriber.push(vscode.commands.registerCommand('project.flash', (item: IView) => prjExplorer.getTarget(item)?.flash()));
+
     subscriber.push(vscode.commands.registerCommand('item.copyValue', (item: IView) => vscode.env.clipboard.writeText(item.tooltip || '')));
 
     subscriber.push(vscode.commands.registerCommand('project.switch', (item: IView) => prjExplorer.switchTargetByProject(item)));
@@ -1063,6 +1065,84 @@ abstract class Target implements IView {
         }
     }
 
+    private runShellTask(name: string, commands: string[]) {
+        if (commands.length == 0) {
+            return;
+        }
+
+        let commandLine = "";
+        commandLine += commands.map((commands) => { return this.quoteString(commands, ""); }).join(' ');
+
+        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+
+            const taskDefinition = {
+                type: 'keil-task',
+                prjID: this.project.prjID,       // Add prjID to definition
+                targetName: this.targetName      // Add targetName to definition
+            };
+            // Using TaskScope.Workspace as project-specific details are in definition
+            const task = new vscode.Task(taskDefinition, vscode.TaskScope.Workspace, name, 'shell');
+            const options: vscode.ShellExecutionOptions = { cwd: this.project.uvprjFile.dir };
+
+            // Use the command + args approach for better VSCode 1.103+ compatibility
+            task.execution = new vscode.ShellExecution(commandLine, options);
+
+            task.isBackground = false;
+            // task.problemMatchers = this.getProblemMatcher(); // We will handle diagnostics manually
+
+            // Clear previous diagnostics for this project/target when a new build starts
+            diagnosticCollection.clear(); // Clears all diagnostics from this collection.
+            // More granular clearing might be needed if multiple projects are handled.
+
+            // Log debugging information for path resolution
+            this.project.logger.log(`[DEBUG] Task CWD for '${name}': '${this.project.uvprjFile.dir}'`);
+            const exampleCompilerPath = "../source/main.c"; // Using a typical problematic path
+            try {
+                if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+                    const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
+                    const resolvedPath = node_path.resolve(this.project.uvprjFile.dir, exampleCompilerPath);
+                    this.project.logger.log(`[DEBUG] Resolved absolute path for '${exampleCompilerPath}' (from CWD): '${resolvedPath}'`);
+                    const relativeToWorkspace = node_path.relative(workspaceRoot, resolvedPath);
+                    this.project.logger.log(`[DEBUG] Path relative to workspace for '${exampleCompilerPath}': '${relativeToWorkspace}'`);
+                } else {
+                    this.project.logger.log(`[DEBUG] No workspace folder found, cannot calculate relative path.`);
+                }
+            } catch (e: any) {
+                this.project.logger.log(`[DEBUG] Error during path resolution debug: ${e.message}`);
+            }
+
+            task.presentationOptions = {
+                echo: false,
+                focus: false,
+                clear: true
+            };
+            vscode.tasks.executeTask(task);
+
+            // After task execution, we'll need to parse the log and publish diagnostics.
+            // This will be handled by listening to onDidEndTaskProcess or similar.
+            // For now, let's add a placeholder for where this logic would be triggered.
+            // TODO: Implement log parsing and diagnostic publishing via onDidEndTaskProcess
+            // this.handleTaskCompletion(name); // This direct call will be removed/replaced
+
+
+        } else {
+            // Fallback for when no workspace is available - use terminal
+            const index = vscode.window.terminals.findIndex((ter) => {
+                return ter.name === name;
+            });
+
+            if (index !== -1) {
+                vscode.window.terminals[index].hide();
+                vscode.window.terminals[index].dispose();
+            }
+
+            const terminal = vscode.window.createTerminal(name);
+            terminal.show();
+            terminal.sendText(commandLine);
+        }
+
+    }
+
     build() {
         this.runWineTask('build', this.getBuildCommand());
     }
@@ -1074,6 +1154,10 @@ abstract class Target implements IView {
     // download() {
     //     this.runWineTask('download', this.getDownloadCommand());
     // }
+
+    flash() {
+        this.runShellTask('flash', this.getFlashCommand());
+    }
 
     updateSourceRefs() {
         const rePath = this.getOutputFolder(this.targetDOM);
@@ -1121,6 +1205,7 @@ abstract class Target implements IView {
     protected abstract getGroups(target: any): any[];
     protected abstract getSystemIncludes(target: any): string[] | undefined;
 
+    protected abstract getOutputHexOrBinFile(target: any): File | undefined;
     protected abstract getOutputFolder(target: any): string | undefined;
     protected abstract parseRefLines(target: any, lines: string[]): string[];
 
@@ -1128,6 +1213,8 @@ abstract class Target implements IView {
     protected abstract getBuildCommand(): string[];
     protected abstract getRebuildCommand(): string[];
     // protected abstract getDownloadCommand(): string[];
+
+    protected abstract getFlashCommand(): string[];
 
     protected getFilePath(filePath: string): string {
         return PathUtils.toAbsolutePath(PathUtils.toRelativePath(filePath.replace(/\\/g, "/")));
@@ -1224,6 +1311,10 @@ class C51Target extends Target {
         return [];
     }
 
+    protected getOutputHexOrBinFile(target: any): File | undefined {
+        return undefined;
+    }
+
     protected getOutputFolder(_target: any): string | undefined {
         return undefined;
     }
@@ -1317,6 +1408,12 @@ class C51Target extends Target {
     //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
     //     ];
     // }
+
+    protected getFlashCommand(): string[] {
+        showMessage("C51 Unsupported flash device", "error");
+        return [];
+    }
+
 }
 
 class MacroHandler {
@@ -1483,6 +1580,35 @@ class ArmTarget extends Target {
     }
 
     protected checkProject(): Error | undefined {
+        return undefined;
+    }
+
+    protected getOutputHexOrBinFile(target: any): File | undefined {
+        const getOutputFolderName = this.getOutputFolder(target);
+
+        if (!getOutputFolderName) {
+            return undefined;
+        }
+
+        let outputDirectory = this.project.toAbsolutePath(getOutputFolderName);
+        let outDir = target['TargetOption']['TargetCommonOption']['OutputName'];
+
+        let fileNoExt = outputDirectory + "/" + outDir;
+
+        // 检查是否存在目标格式的二进制文件
+
+        // 检查.hex文件是否存在
+        const hexFile = fileNoExt + '.hex';
+        if (fs.existsSync(hexFile)) {
+            return File.fromArray([hexFile]);
+        }
+
+        // 检查.bin文件是否存在
+        const binFile = fileNoExt + '.bin';
+        if (fs.existsSync(binFile)) {
+            return File.fromArray([binFile]);
+        }
+
         return undefined;
     }
 
@@ -1797,6 +1923,39 @@ class ArmTarget extends Target {
     //         '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
     //     ];
     // }
+
+    protected getFlashCommand(): string[] {
+
+        const flashDevice = ResourceManager.getInstance().getFlashDevice();
+        if (flashDevice == "ST-LINK V2") {
+            let binFile = this.getOutputHexOrBinFile(this.targetDOM);
+            if (!binFile) {
+                showMessage("Please build first and check the hex options", "error");
+                return [];
+            }
+            if (!binFile.IsFile()) {
+                showMessage("Hex File Error", "error");
+                return [];
+            }
+
+            let param = "";
+
+            if (binFile.suffix == ".hex") {
+                param = "--format ihex";
+            }
+
+            return [
+                ResourceManager.getInstance().getSTFlashPath(),
+                param,
+                "write",
+                binFile.path
+            ];
+
+        } else {
+            showMessage("Unsupported flash device", "error");
+            return [];
+        }
+    }
 }
 
 //================================================
@@ -1814,6 +1973,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
     private buildStatusBarItem: vscode.StatusBarItem;
     private rebuildStatusBarItem: vscode.StatusBarItem;
     // private downloadStatusBarItem: vscode.StatusBarItem;
+    private flashStatusbarItem: vscode.StatusBarItem;
 
     private extensionContext: vscode.ExtensionContext; // Store context
 
@@ -1836,6 +1996,11 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         this.rebuildStatusBarItem.tooltip = "重新编译当前 Keil 工程";
         this.rebuildStatusBarItem.command = 'keil.rebuild';
 
+        this.flashStatusbarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
+        this.flashStatusbarItem.text = "$(cloud-upload) Flash";
+        this.flashStatusbarItem.tooltip = "将程序烧录到目标设备";
+        this.flashStatusbarItem.command = 'keil.flash';
+
         // this.downloadStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, -10);
         // this.downloadStatusBarItem.text = "$(cloud-upload) Download";
         // this.downloadStatusBarItem.tooltip = "下载程序到目标设备";
@@ -1851,10 +2016,12 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
             this.buildStatusBarItem.show();
             this.rebuildStatusBarItem.show();
             // this.downloadStatusBarItem.show();
+            this.flashStatusbarItem.show();
         } else {
             this.buildStatusBarItem.hide();
             this.rebuildStatusBarItem.hide();
             // this.downloadStatusBarItem.hide();
+            this.flashStatusbarItem.hide();
         }
     }
 
@@ -2067,6 +2234,7 @@ class ProjectExplorer implements vscode.TreeDataProvider<IView>, vscode.Disposab
         this.buildStatusBarItem.dispose();
         this.rebuildStatusBarItem.dispose();
         // this.downloadStatusBarItem.dispose();
+        this.flashStatusbarItem.dispose();
         this.prjList.forEach(prj => prj.close()); // Ensure projects are closed
         this.prjList.clear();
         this.viewEvent.dispose();

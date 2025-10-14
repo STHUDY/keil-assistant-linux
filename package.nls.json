@@ -4,5 +4,7 @@
     "keil.wine.path.description": "Path to wine executable. Leave empty to use wine from system PATH",
     "keil.wine.prefix.description": "Absolute path to wine prefix. Example: `/home/wine/.wine`, Leave empty to use path `~/.wine`",
     "keil.project.exclude.description": "uVision project file name exclude list",
-    "keil.project.locations.description": "uVision project file locations"
+    "keil.project.locations.description": "uVision project file locations",
+    "keil.flash.device.description": "Flash device name, such as ST-LINK V2",
+    "keil.flash.st-flashPath.description": "Absolute path to st-flash executable. Example: `/usr/local/bin/st-flash`, Leave empty to use st-flash from system PATH"
 }
