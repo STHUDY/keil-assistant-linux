@@ -939,7 +939,7 @@ abstract class Target implements IView {
         return str.includes(' ') ? (quote + str + quote) : str;
     }
 
-    private windowsPathToLinuxByWinePrefixPath(path: string): string {
+    public windowsPathToLinuxByWinePrefixPath(path: string): string {
         if (!path) return "";
 
         let winPath: string = path.trim();
@@ -1734,7 +1734,12 @@ class ArmTarget extends Target {
 
 
     protected getSystemIncludes(target: any): string[] | undefined {
-        const rawPath = ResourceManager.getInstance().getArmUV4Path();
+        let rawPath = ResourceManager.getInstance().getArmUV4Path();
+
+        if (isWindowsPath(rawPath)) {
+            rawPath = this.windowsPathToLinuxByWinePrefixPath(rawPath);
+        }
+
         this.project.logger.log(`[DEBUG] ========== Keil Include Path Detection Start ==========`);
         this.project.logger.log(`[DEBUG] Raw UV4 Path from config: '${rawPath}'`);
         this.project.logger.log(`[DEBUG] Raw path length: ${rawPath.length}`);
