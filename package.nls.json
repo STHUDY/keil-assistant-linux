@@ -6,5 +6,6 @@
     "keil.project.exclude.description": "uVision project file name exclude list",
     "keil.project.locations.description": "uVision project file locations",
     "keil.flash.device.description": "Flash device name, such as ST-LINK V2",
-    "keil.flash.st-flashPath.description": "Absolute path to st-flash executable. Example: `/usr/local/bin/st-flash`, Leave empty to use st-flash from system PATH"
+    "keil.flash.st-flashPath.description": "Absolute path to st-flash executable. Example: `/usr/local/bin/st-flash`, Leave empty to use st-flash from system PATH",
+    "keil.base.auto-replace-path.description": "Change '\\' to '/' in output"
 }

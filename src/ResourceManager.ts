@@ -55,6 +55,10 @@ export class ResourceManager {
         return vscode.workspace.getConfiguration('KeilAssistant');
     }
 
+    getBaseAutoReplacePath(): boolean {
+        return this.getAppConfig().get<boolean>("Base.AutoReplacePath") || false;
+    }
+
     getBuilderExe(): string {
         return this.dirMap.get('bin')?.path + File.sep + 'Uv4Caller.exe';
     }

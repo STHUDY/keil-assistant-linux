@@ -925,11 +925,8 @@ abstract class Target implements IView {
                 }
 
                 this.fGroups.push(nGrp);
-                // console.log(fileList)
-
             }
         }
-
 
         this.updateCppProperties();
         this.updateSourceRefs();
@@ -981,6 +978,7 @@ abstract class Target implements IView {
         const winePrefix = resManager.getWinePrefixPath();
         const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
         const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
+        const filterSuffix = `2>&1 | sed -u 's/\\\\/\\//g'`;
 
         // use task
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
@@ -996,6 +994,9 @@ abstract class Target implements IView {
 
             let commandLine = invokePrefix + this.quoteString(builderExe, quote) + ' ';
             commandLine += args.map((arg) => { return this.quoteString(arg, quote); }).join(' ');
+
+            if (resManager.getBaseAutoReplacePath())
+                commandLine += ' ' + filterSuffix;
 
             // Use the command + args approach for better VSCode 1.103+ compatibility
             task.execution = new vscode.ShellExecution(commandLine, options);
