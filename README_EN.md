@@ -32,6 +32,14 @@ st-flash --format ihex write <file> // .hex
 ### Install WineHQ
 [WineHQ](https://www.winehq.org/)
 
+### Install wine-momo
+
+When you first run winecfg or create a new Wine prefix (~/.wine), Wine will prompt you to install Wine Mono
+
+If console output no file list or noting , please check your wine-momo that installs
+
+[wine-momo](https://github.com/wine-mono/wine-mono/releases)
+
 ### Configure WineHQ
 
 #### Use winetricks

@@ -34,6 +34,14 @@ st-flash --format ihex write <file> // .hex
 
 ### 配置Wine
 
+### 安装wine-momo
+
+当你第一次运行 winecfg 或创建新的 Wine 前缀（~/.wine）时，Wine 会提示你安装 Wine Mono。
+
+如果编译没有文件显示或者没有输出，请检查你的wine-momo是否安装
+
+[wine-momo](https://github.com/wine-mono/wine-mono/releases)
+
 #### 使用winetricks
 
 安装
