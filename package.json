@@ -2,7 +2,7 @@
     "name": "keil-assistant-linux",
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
-    "version": "1.1.3",
+    "version": "1.2.0",
     "publisher": "sthudy",
     "author": {
         "name": "STHUDY"
@@ -42,24 +42,6 @@
             {
                 "title": "Keil Assistant Linux",
                 "properties": {
-                    "KeilAssistant.Base.AutoReplacePath": {
-                        "type": "boolean",
-                        "scope": "machine",
-                        "markdownDescription": "%keil.base.auto-replace-path.description%",
-                        "default": true
-                    },
-                    "KeilAssistant.C51.Uv4Path": {
-                        "type": "string",
-                        "scope": "machine",
-                        "markdownDescription": "%keil.c51.uv4path.description%",
-                        "default": ""
-                    },
-                    "KeilAssistant.MDK.Uv4Path": {
-                        "type": "string",
-                        "scope": "machine",
-                        "markdownDescription": "%keil.mdk.uv4path.description%",
-                        "default": ""
-                    },
                     "KeilAssistant.Wine.Path": {
                         "type": "string",
                         "scope": "machine",
@@ -72,6 +54,36 @@
                         "markdownDescription": "%keil.wine.prefix.description%",
                         "default": ""
                     },
+                    "KeilAssistant.C51.Uv4Path": {
+                        "type": "string",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.c51.uv4path.description%",
+                        "default": ""
+                    },
+                    "KeilAssistant.C251.Uv4Path": {
+                        "type": "string",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.c251.uv4path.description%",
+                        "default": ""
+                    },
+                    "KeilAssistant.MDK.Uv4Path": {
+                        "type": "string",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.mdk.uv4path.description%",
+                        "default": ""
+                    },
+                    "KeilAssistant.Base.AutoReplacePath": {
+                        "type": "boolean",
+                        "scope": "machine",
+                        "markdownDescription": "%keil.base.auto-replace-path.description%",
+                        "default": true
+                    },
+                    "KeilAssistant.Project.FileLocationList": {
+                        "type": "array",
+                        "scope": "resource",
+                        "markdownDescription": "%keil.project.locations.description%",
+                        "default": []
+                    },
                     "KeilAssistant.Project.ExcludeList": {
                         "type": "array",
                         "scope": "resource",
@@ -80,12 +92,6 @@
                             "template.uvproj",
                             "template.uvprojx"
                         ]
-                    },
-                    "KeilAssistant.Project.FileLocationList": {
-                        "type": "array",
-                        "scope": "resource",
-                        "markdownDescription": "%keil.project.locations.description%",
-                        "default": []
                     },
                     "KeilAssistant.flash.device": {
                         "type": "string",

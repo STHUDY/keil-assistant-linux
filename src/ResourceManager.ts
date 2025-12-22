@@ -67,6 +67,10 @@ export class ResourceManager {
         return this.getAppConfig().get<string>('C51.Uv4Path') || 'null';
     }
 
+    getArmC251Path(): string {
+        return this.getAppConfig().get<string>('C251.Uv4Path') || 'null';
+    }
+
     getArmUV4Path(): string {
         return this.getAppConfig().get<string>('MDK.Uv4Path') || 'null';
     }
