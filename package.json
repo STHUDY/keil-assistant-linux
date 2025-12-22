@@ -42,8 +42,8 @@
             {
                 "title": "Keil Assistant Linux",
                 "properties": {
-                    "KeilAssistant.Base.AutoReplacePath":{
-                        "type":"boolean",
+                    "KeilAssistant.Base.AutoReplacePath": {
+                        "type": "boolean",
                         "scope": "machine",
                         "markdownDescription": "%keil.base.auto-replace-path.description%",
                         "default": true
