@@ -1036,11 +1036,11 @@ abstract class Target implements IView {
         // For VSCode 1.103+ compatibility, we use the command and args array approach
         // instead of building a single command line string
         const builderExe = resManager.getBuilderExe();
-
+ 
         const quote = '\'';
         const cmdPrefixSuffix = "";
         const winePrefix = resManager.getWinePrefixPath();
-        const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
+        const prefixPart = winePrefix !== "" ? `WINEPREFIX="${winePrefix}" ` : "";
         const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
         const filterSuffix = `2>&1 | sed -u 's/\\\\/\\//g'`;
 
@@ -1936,7 +1936,7 @@ class ArmTarget extends Target {
 
             const resManager = ResourceManager.getInstance();
             const winePrefix = resManager.getWinePrefixPath();
-            const prefixPart = winePrefix !== "" ? `WINEPREFIX=${winePrefix} ` : "";
+            const prefixPart = winePrefix !== "" ? `WINEPREFIX="${winePrefix}" ` : "";
             const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
 
             const cmdLine = invokePrefix + CmdLineHandler.quoteString(armClangPath, '"')
