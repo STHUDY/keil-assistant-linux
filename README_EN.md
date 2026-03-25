@@ -65,5 +65,7 @@ See setting's tips
 For any issues or suggestions, please report via GitHub Issues.
 
 ## Differences from the Original Plugin
+
 Added Wine settings and path fixes for Linux.
+
 Added support for st-flash.

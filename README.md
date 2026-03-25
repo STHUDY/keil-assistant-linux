@@ -65,5 +65,7 @@ wine MDK-ARM.exe
 如有问题或建议，请通过 GitHub Issues 反馈。
 
 ## 与原插件的不同
+
 增加了wine的设置和Linux上的路径修复
+
 增加了对st-flash的支持
