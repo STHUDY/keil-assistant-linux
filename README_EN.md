@@ -8,7 +8,7 @@ This Project aims to solve Keil5 in Linux, so that you can write、build and fla
 
 ## Origin README
 
-[keil-assistant](https://github.com/ruiwarn/keil-assistant)
+[keil-assistant-linux](https://github.com/ruiwarn/keil-assistant-linux)
 
 ## Project Make
 

@@ -25,7 +25,7 @@ const Time_1 = require("../lib/node_utility/Time");
 const util_1 = require("util");
 const CmdLineHandler_1 = require("./CmdLineHandler");
 function activate(context) {
-    console.log('---- keil-assistant actived ----');
+    console.log('---- keil-assistant-linux actived ----');
     // init resource
     ResourceManager_1.ResourceManager.getInstance(context);
     const prjExplorer = new ProjectExplorer(context);
@@ -86,7 +86,7 @@ function activate(context) {
 }
 exports.activate = activate;
 function deactivate() {
-    console.log('---- keil-assistant closed ----');
+    console.log('---- keil-assistant-linux closed ----');
 }
 exports.deactivate = deactivate;
 //==================== Global Func===========================
@@ -177,7 +177,7 @@ class KeilProject {
         this.targetList = [];
         this.vscodeDir = new File_1.File(_uvprjFile.dir + File_1.File.sep + '.vscode');
         this.vscodeDir.CreateDir();
-        const logPath = this.vscodeDir.path + File_1.File.sep + 'keil-assistant.log';
+        const logPath = this.vscodeDir.path + File_1.File.sep + 'keil-assistant-linux.log';
         this.logger = new console.Console(fs.createWriteStream(logPath, { flags: 'a+' }));
         this.uvprjFile = _uvprjFile;
         this.watcher = new FileWatcher_1.FileWatcher(this.uvprjFile);

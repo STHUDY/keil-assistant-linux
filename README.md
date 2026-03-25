@@ -8,7 +8,7 @@
 
 ## 原始简介
 
-[keil-assistant](https://github.com/ruiwarn/keil-assistant)
+[keil-assistant-linux](https://github.com/ruiwarn/keil-assistant-linux)
 
 ## 项目实现
 

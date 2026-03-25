@@ -89,7 +89,7 @@ function showMessage(message: string, type: 'info' | 'warning' | 'error' = 'info
 
 export function activate(context: vscode.ExtensionContext) {
 
-    console.log('---- keil-assistant actived ----');
+    console.log('---- keil-assistant-linux actived ----');
 
     // init resource
     ResourceManager.getInstance(context);
@@ -269,7 +269,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    console.log('---- keil-assistant closed ----');
+    console.log('---- keil-assistant-linux closed ----');
 }
 
 //==================== Global Func===========================
@@ -499,7 +499,7 @@ class KeilProject implements IView, KeilProjectInfo {
             // Fallback or error handling if directory creation fails - for now, log and continue
         }
 
-        const logPath = node_path.join(this.projectStorageDir.path, 'keil-assistant.log');
+        const logPath = node_path.join(this.projectStorageDir.path, 'keil-assistant-linux.log');
         this.logger = new console.Console(fs.createWriteStream(logPath, { flags: 'a+' }));
         this.watcher = new FileWatcher(this.uvprjFile);
         this.label = _uvprjFile.noSuffixName;
