@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Keil Assistant New is a VSCode extension that provides comprehensive support for Keil µVision projects (C51 and ARM). This is a community-maintained fork that significantly improves upon the original with intelligent build features, multi-core compilation, and better project management.
+Keil Assistant Linux is a VSCode extension that provides comprehensive support for Keil µVision projects (C51 and ARM). This is a community-maintained fork that significantly improves upon the original with intelligent build features, multi-core compilation, and better project management.
 
 ## Development Commands
 
@@ -87,10 +87,10 @@ npm run test
 ## Important Configuration
 
 ### Extension Settings
-- `KeilAssistant.C51.Uv4Path`: Path to Keil C51 UV4.exe
-- `KeilAssistant.MDK.Uv4Path`: Path to Keil MDK UV4.exe  
-- `KeilAssistant.Project.ExcludeList`: Project files to ignore
-- `KeilAssistant.Project.FileLocationList`: Custom project search paths
+- `KeilAssistantLinux.C51.Uv4Path`: Path to Keil C51 UV4.exe
+- `KeilAssistantLinux.MDK.Uv4Path`: Path to Keil MDK UV4.exe  
+- `KeilAssistantLinux.Project.ExcludeList`: Project files to ignore
+- `KeilAssistantLinux.Project.FileLocationList`: Custom project search paths
 
 ### Key Keybindings
 - `F7`: Build project

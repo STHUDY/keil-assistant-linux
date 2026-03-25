@@ -95,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
     ResourceManager.getInstance(context);
 
     // Create a diagnostic collection for Keil compiler errors/warnings
-    diagnosticCollection = vscode.languages.createDiagnosticCollection('keilAssistant');
+    diagnosticCollection = vscode.languages.createDiagnosticCollection('KeilAssistantLinux');
     context.subscriptions.push(diagnosticCollection);
 
     const prjExplorer = new ProjectExplorer(context);
@@ -119,10 +119,10 @@ export function activate(context: vscode.ExtensionContext) {
                     project.logger.log(`[INFO] Task '${task.name}' ended for ${targetName}. Exit code: ${event.exitCode}. Processing diagnostics.`);
                     await target.processDiagnostics();
                 } else {
-                    console.error(`Keil Assistant: Could not find target '${targetName}' for project ID '${prjID}' after task end.`);
+                    console.error(`Keil Assistant Linux: Could not find target '${targetName}' for project ID '${prjID}' after task end.`);
                 }
             } else {
-                console.error(`Keil Assistant: Could not find project with ID '${prjID}' after task end.`);
+                console.error(`Keil Assistant Linux: Could not find project with ID '${prjID}' after task end.`);
             }
         }
     }));
@@ -194,12 +194,12 @@ export function activate(context: vscode.ExtensionContext) {
 
             // 根据工程类型检查对应的路径
             if (hasC51Project) {
-                const c51Path = vscode.workspace.getConfiguration('KeilAssistant.C51').get<string>('Uv4Path');
+                const c51Path = vscode.workspace.getConfiguration('KeilAssistantLinux.C51').get<string>('Uv4Path');
                 if (!c51Path) {
                     showMessage(
                         '请先设置 C51 UV4 路径！\n' +
                         '1. 打开设置 (Ctrl+,)\n' +
-                        '2. 搜索 "KeilAssistant.C51.Uv4Path"\n' +
+                        '2. 搜索 "KeilAssistantLinux.C51.Uv4Path"\n' +
                         '3. 设置 C51 UV4.exe 的绝对路径\n' +
                         '示例路径：C:\\Keil_v5\\UV4\\UV4.exe',
                         'error'
@@ -209,12 +209,12 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             if (hasArmProject) {
-                const mdkPath = vscode.workspace.getConfiguration('KeilAssistant.MDK').get<string>('Uv4Path');
+                const mdkPath = vscode.workspace.getConfiguration('KeilAssistantLinux.MDK').get<string>('Uv4Path');
                 if (!mdkPath) {
                     showMessage(
                         '请先设置 MDK UV4 路径！\n' +
                         '1. 打开设置 (Ctrl+,)\n' +
-                        '2. 搜索 "KeilAssistant.MDK.Uv4Path"\n' +
+                        '2. 搜索 "KeilAssistantLinux.MDK.Uv4Path"\n' +
                         '3. 设置 MDK UV4.exe 的绝对路径\n' +
                         '示例路径：C:\\Keil_v5\\UV4\\UV4.exe',
                         'error'
@@ -495,7 +495,7 @@ class KeilProject implements IView, KeilProjectInfo {
                 fs.mkdirSync(this.projectStorageDir.path, { recursive: true });
             }
         } catch (error) {
-            console.error(`Keil Assistant: Failed to create project storage directory at ${this.projectStorageDir.path}`, error);
+            console.error(`Keil Assistant Linux: Failed to create project storage directory at ${this.projectStorageDir.path}`, error);
             // Fallback or error handling if directory creation fails - for now, log and continue
         }
 
@@ -1958,7 +1958,7 @@ class ArmTarget extends Target {
 
             return resList;
         } catch (error) {
-            console.warn(`[Keil Assistant] getArmClangMacroList failed: ${error}`);
+            console.warn(`[Keil Assistant Linux] getArmClangMacroList failed: ${error}`);
             // Linux 环境下失败时返回默认宏列表
             return ['__GNUC__=4', '__GNUC_MINOR__=2', '__GNUC_PATCHLEVEL__=1'];
         }
@@ -1990,7 +1990,7 @@ class ArmTarget extends Target {
             this.project.logger.log(`[ERROR] 2. 路径末尾是否有多余的空格`);
             this.project.logger.log(`[ERROR] 3. UV4.exe 文件是否真实存在`);
             this.project.logger.log(`[ERROR] 4. 是否有足够的文件访问权限`);
-            this.project.logger.log(`[ERROR] 请在 VSCode 设置中重新配置 'KeilAssistant.MDK.Uv4Path' 的值`);
+            this.project.logger.log(`[ERROR] 请在 VSCode 设置中重新配置 'KeilAssistantLinux.MDK.Uv4Path' 的值`);
             return undefined;
         }
 

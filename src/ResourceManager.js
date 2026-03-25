@@ -44,7 +44,7 @@ class ResourceManager {
         }
     }
     getAppConfig() {
-        return vscode.workspace.getConfiguration('KeilAssistant');
+        return vscode.workspace.getConfiguration('KeilAssistantLinux');
     }
     getBuilderExe() {
         var _a;

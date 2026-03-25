@@ -42,49 +42,49 @@
             {
                 "title": "Keil Assistant Linux",
                 "properties": {
-                    "KeilAssistant.Wine.Path": {
+                    "KeilAssistantLinux.Wine.Path": {
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.wine.path.description%",
                         "default": "wine"
                     },
-                    "KeilAssistant.Wine.PrefixPath": {
+                    "KeilAssistantLinux.Wine.PrefixPath": {
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.wine.prefix.description%",
                         "default": ""
                     },
-                    "KeilAssistant.C51.Uv4Path": {
+                    "KeilAssistantLinux.C51.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.c51.uv4path.description%",
                         "default": ""
                     },
-                    "KeilAssistant.C251.Uv4Path": {
+                    "KeilAssistantLinux.C251.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.c251.uv4path.description%",
                         "default": ""
                     },
-                    "KeilAssistant.MDK.Uv4Path": {
+                    "KeilAssistantLinux.MDK.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
                         "markdownDescription": "%keil.mdk.uv4path.description%",
                         "default": ""
                     },
-                    "KeilAssistant.Base.AutoReplacePath": {
+                    "KeilAssistantLinux.Base.AutoReplacePath": {
                         "type": "boolean",
                         "scope": "machine",
                         "markdownDescription": "%keil.base.auto-replace-path.description%",
                         "default": true
                     },
-                    "KeilAssistant.Project.FileLocationList": {
+                    "KeilAssistantLinux.Project.FileLocationList": {
                         "type": "array",
                         "scope": "resource",
                         "markdownDescription": "%keil.project.locations.description%",
                         "default": []
                     },
-                    "KeilAssistant.Project.ExcludeList": {
+                    "KeilAssistantLinux.Project.ExcludeList": {
                         "type": "array",
                         "scope": "resource",
                         "markdownDescription": "%keil.project.exclude.description%",
@@ -93,7 +93,7 @@
                             "template.uvprojx"
                         ]
                     },
-                    "KeilAssistant.flash.device": {
+                    "KeilAssistantLinux.flash.device": {
                         "type": "string",
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.device.description%",
@@ -102,7 +102,7 @@
                         ],
                         "default": "ST-LINK V2"
                     },
-                    "KeilAssistant.flash.st-flashPath": {
+                    "KeilAssistantLinux.flash.st-flashPath": {
                         "type": "string",
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.st-flashPath.description%",

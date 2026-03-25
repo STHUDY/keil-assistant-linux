@@ -770,7 +770,7 @@ class ArmTarget extends Target {
 
             return resList;
         } catch (error) {
-            console.warn(`[Keil Assistant] getArmClangMacroList failed: ${error}`);
+            console.warn(`[Keil Assistant Linux] getArmClangMacroList failed: ${error}`);
             return ['__GNUC__=4', '__GNUC_MINOR__=2', '__GNUC_PATCHLEVEL__=1'];
         }
     }

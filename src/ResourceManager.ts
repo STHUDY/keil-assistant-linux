@@ -52,7 +52,7 @@ export class ResourceManager {
     }
 
     private getAppConfig(): vscode.WorkspaceConfiguration {
-        return vscode.workspace.getConfiguration('KeilAssistant');
+        return vscode.workspace.getConfiguration('KeilAssistantLinux');
     }
 
     getBaseAutoReplacePath(): boolean {
