@@ -57,6 +57,13 @@ wine MDK-ARM.exe
 
 [st-flash](https://github.com/stlink-org/stlink)
 
+### vscode设置
+进入vscode根据提示进行设置
+
 ## 问题反馈
 
 如有问题或建议，请通过 GitHub Issues 反馈。
+
+## 与原插件的不同
+增加了wine的设置和Linux上的路径修复
+增加了对st-flash的支持
