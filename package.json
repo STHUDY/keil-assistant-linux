@@ -1,5 +1,5 @@
 {
-    "name": "keil-assistant-linux",
+    "name": "keil-assistant-for-linux",
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
     "version": "1.2.1",
@@ -322,6 +322,7 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run compile && webpack --mode production",
+        "publish": "vsce package",
         "compile": "npx tsc -p ./",
         "watch": "npx tsc -watch -p ./",
         "webpack": "npx webpack --mode development",
