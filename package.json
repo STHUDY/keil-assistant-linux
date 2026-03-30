@@ -1,6 +1,6 @@
 {
     "name": "keil-assistant-for-linux",
-    "displayName": "Keil Assistant For Linux",
+    "displayName": "Keil Assistant Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
     "version": "1.2.1",
     "publisher": "sthudy",
