@@ -781,6 +781,7 @@ abstract class Target implements IView {
         } else {
             // 如果无法确定工程类型，弹出选择对话框
             const selection = await vscode.window.showQuickPick([
+                { label: 'C251 工程', description: '8051 系列单片机工程', target: 'C251' },
                 { label: 'C51 工程', description: '8051 系列单片机工程', target: 'C51' },
                 { label: 'ARM 工程', description: 'ARM 系列单片机工程', target: 'ARM' }
             ], {
@@ -792,9 +793,17 @@ abstract class Target implements IView {
                 throw new Error('未选择工程类型');
             }
 
-            return selection.target === 'C51' ?
-                new C51Target(prjInfo, uvInfo, targetDOM) :
-                new ArmTarget(prjInfo, uvInfo, targetDOM);
+            switch (selection.target) {
+                case "C51":
+                    return new C51Target(prjInfo, uvInfo, targetDOM)
+
+                case "C251":
+                    return new C251Target(prjInfo, uvInfo, targetDOM);
+
+                case "ARM":
+                default:
+                    return new ArmTarget(prjInfo, uvInfo, targetDOM);
+            }
         }
     }
 
@@ -1036,7 +1045,7 @@ abstract class Target implements IView {
         // For VSCode 1.103+ compatibility, we use the command and args array approach
         // instead of building a single command line string
         const builderExe = resManager.getBuilderExe();
- 
+
         const quote = '\'';
         const cmdPrefixSuffix = "";
         const winePrefix = resManager.getWinePrefixPath();
