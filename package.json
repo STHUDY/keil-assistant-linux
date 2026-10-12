@@ -2,7 +2,7 @@
     "name": "keil-assistant-linux",
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "sthudy",
     "author": {
         "name": "STHUDY"
@@ -99,7 +99,8 @@
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.device.description%",
                         "enum": [
-                            "ST-LINK V2"
+                            "ST-LINK V2",
+                            "CMSIS DAP Link"
                         ],
                         "default": "ST-LINK V2"
                     },
@@ -108,6 +109,12 @@
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.st-flashPath.description%",
                         "default": "st-flash"
+                    },
+                    "KeilAssistantLinux.flash.openocdPath": {
+                        "type": "string",
+                        "scope": "resource",
+                        "markdownDescription": "%keil.flash.openocdPath.description%",
+                        "default": "openocd"
                     }
                 }
             }

@@ -8,5 +8,6 @@
     "keil.project.locations.description": "uVision 项目文件位置",
     "keil.flash.device.description": "烧录器类型",
     "keil.flash.st-flashPath.description": "ST-Flash 绝对路径。例如：`/usr/local/bin/st-flash`，留空则使用系统 PATH 中的 st-flash",
+    "keil.flash.openocdPath.description": "OpenOCD 绝对路径。例如：`/usr/local/bin/openocd`，留空则使用系统 PATH 中的 openocd",
     "keil.base.auto-replace-path.description": "修改输出中的 ‘\\’ 为 ‘/’"
 }

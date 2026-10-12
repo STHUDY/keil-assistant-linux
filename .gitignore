@@ -1,8 +1,65 @@
-test.js
-out
-out.min
-node_modules
-test
+# ============================================
+# Node / TypeScript
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+out/
+out.min/
+coverage/
+
+# TypeScript incremental cache
+*.tsbuildinfo
+
+# ============================================
+# VSCode extension packaging & tests
+# ============================================
 *.vsix
-dist
-package-lock.json
+.vscode-test/
+
+# ============================================
+# Compiled JavaScript files (regenerable from .ts)
+# ============================================
+# Exclude at the .ts sibling level - keep config files like
+# .eslintrc.js and webpack.config.js tracked via negation.
+**/*.js
+**/*.js.map
+!.eslintrc.js
+!webpack.config.js
+
+# ============================================
+# Environment & logs
+# ============================================
+.env
+.env.local
+.env.*.local
+*.log
+logs/
+
+# ============================================
+# OS / editor metadata
+# ============================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+
+# Personal VSCode settings (each developer has their own PATH etc.)
+.vscode/settings.json
+
+# ============================================
+# AI assistant tool configs (personal dev environment)
+# ============================================
+.claude/
+.roo/
+.serena/
+memory-bank/
+.roomodes
