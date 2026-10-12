@@ -86,14 +86,44 @@ export class C51Target extends Target {
         const resManager = ResourceManager.getInstance();
         const flashDevice = resManager.getFlashDevice();
         if (flashDevice === 'KEIL5 MDK') {
+            // Uv4Caller-style: needs the wrapper, so goes through wine mode
             return {
                 useWine: true,
                 args: [
-                    '--uv4Path', resManager.getArmUV4Path(),
+                    '--uv4Path', resManager.getC51UV4Path(),
                     '--prjPath', this.project.uvprjFile.path,
                     '--targetName', this.targetName,
                     '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
                 ]
+            };
+        }
+
+        if (flashDevice === 'ST-LINK V2') {
+            showMessage("C51 Unsupported ST-LINK V2 device", "error");
+            return { useWine: false, args: [] };
+        }
+
+        if (flashDevice === 'CMSIS DAP Link') {
+            const hexFile = this.getOutputHexFile(this.targetDOM);
+            if (!hexFile) {
+                showMessage("Please build first and check the hex options", "error");
+                return { useWine: false, args: [] };
+            }
+
+            const openocdCfgPath = this.getOpenocdWriteCfgFile(this.targetDOM);
+            if (!openocdCfgPath) {
+                showMessage("OpenOCD target configuration not found", "error");
+                return { useWine: false, args: [] };
+            }
+
+            return {
+                useWine: false,
+                args: [
+                    resManager.getOpenocdPath(),
+                    '-f', 'interface/cmsis-dap.cfg',
+                    '-f', openocdCfgPath.path,
+                    '-c', `'program "${hexFile.path}" verify reset; shutdown'`,
+                ],
             };
         }
         showMessage("C51 Unsupported flash device", "error");
