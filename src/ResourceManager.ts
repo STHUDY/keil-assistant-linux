@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
 import { File } from '../lib/node_utility/File';
 
 let _instance: ResourceManager | undefined;
@@ -8,6 +9,19 @@ const dirList: string[] = [
     File.sep + 'res',
     File.sep + 'res' + File.sep + 'icons'
 ];
+
+/**
+ * Expand a leading `~` to the current user's home directory.
+ * Wine rejects `~` in WINEPREFIX, so callers that pass the result to
+ * a shell command must receive an absolute path.
+ */
+function expandHome(path: string): string {
+    if (!path) return path;
+    if (path === '~' || path.startsWith('~/') || path.startsWith('~\\')) {
+        return path.replace('~', os.homedir());
+    }
+    return path;
+}
 
 export class ResourceManager {
 
@@ -72,7 +86,7 @@ export class ResourceManager {
     }
 
     getArmUV4Path(): string {
-        return this.getAppConfig().get<string>('MDK.Uv4Path') || 'null';
+        return this.getAppConfig().get<string>('ARM.Uv4Path') || 'null';
     }
 
     getWinePath(): string {
@@ -80,7 +94,8 @@ export class ResourceManager {
     }
 
     getWinePrefixPath() {
-        return this.getAppConfig().get<string>("Wine.PrefixPath") || '~/.wine';
+        const raw = this.getAppConfig().get<string>("Wine.PrefixPath") || '~/.wine';
+        return expandHome(raw);
     }
 
     getProjectExcludeList(): string[] {
@@ -97,6 +112,14 @@ export class ResourceManager {
 
     getSTFlashPath() {
         return this.getAppConfig().get<string>("flash.st-flashPath") || 'st-flash';
+    }
+
+    getOpenocdPath() {
+        return this.getAppConfig().get<string>("flash.openocdPath") || 'openocd';
+    }
+
+    getOpenocdTargetCfgMap(): Record<string, string> {
+        return this.getAppConfig().get<Record<string, string>>("flash.openocdTargetCfgMap") || {};
     }
 
     getIconByName(name: string): string | undefined {

@@ -1,12 +1,14 @@
 {
     "keil.c51.uv4path.description": "Absolute path to C51 UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
     "keil.c251.uv4path.description": "Absolute path to C251 UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
-    "keil.mdk.uv4path.description": "Absolute path to MDK UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
+    "keil.arm.uv4path.description": "Absolute path to ARM UV4.exe (in .wine). Example: `C:/Keil_v5/UV4/UV4.exe`\n\nPlease ensure the path is correct, otherwise the extension will not work properly.",
     "keil.wine.path.description": "Path to wine executable. Leave empty to use wine from system PATH",
     "keil.wine.prefix.description": "Absolute path to wine prefix. Example: `/home/wine/.wine`, Leave empty to use path `~/.wine`",
     "keil.project.exclude.description": "uVision project file name exclude list",
     "keil.project.locations.description": "uVision project file locations",
     "keil.flash.device.description": "Flash device name, such as ST-LINK V2",
     "keil.flash.st-flashPath.description": "Absolute path to st-flash executable. Example: `/usr/local/bin/st-flash`, Leave empty to use st-flash from system PATH",
+    "keil.flash.openocdPath.description": "Absolute path to OpenOCD executable. Example: `/usr/local/bin/openocd`, Leave empty to use openocd from system PATH",
+    "keil.flash.openocdTargetCfgMap.description": "Override OpenOCD target configuration for specific chip prefixes. Example: `{ \"STM32F0\": \"target/stm32f0x.cfg\" }`. Leave empty to auto-detect.",
     "keil.base.auto-replace-path.description": "Change '\\' to '/' in output"
 }
