@@ -385,41 +385,71 @@ export class ArmTarget extends Target {
         return Math.max(1, os.cpus().length);
     }
 
-    protected getFlashCommand(): string[] {
+    protected getFlashCommand(): { useWine: boolean; args: string[] } {
         const resManager = ResourceManager.getInstance();
         const flashDevice = resManager.getFlashDevice();
 
+        if (flashDevice === 'KEIL5 MDK') {
+            // Uv4Caller-style: needs the wrapper, so goes through wine mode
+            return {
+                useWine: true,
+                args: [
+                    '--uv4Path', resManager.getArmUV4Path(),
+                    '--prjPath', this.project.uvprjFile.path,
+                    '--targetName', this.targetName,
+                    '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+                ]
+            };
+        }
+
         if (flashDevice === 'ST-LINK V2') {
-            const binFile = this.getOutputHexOrBinFile(this.targetDOM);
-            if (!binFile) {
+            const hexFile = this.getOutputHexFile(this.targetDOM);
+            if (!hexFile) {
                 showMessage("Please build first and check the hex options", "error");
-                return [];
+                return { useWine: false, args: [] };
             }
-            if (!binFile.IsFile()) {
+            if (!hexFile.IsFile()) {
                 showMessage("Hex File Error", "error");
-                return [];
+                return { useWine: false, args: [] };
             }
 
-            const param = binFile.suffix === '.hex' ? '--format ihex' : '';
-            return [
-                resManager.getSTFlashPath(),
-                param,
-                'write',
-                binFile.path
-            ];
+            const param = hexFile.suffix === '.hex' ? '--format ihex' : '';
+            return {
+                useWine: false,
+                args: [
+                    resManager.getSTFlashPath(),
+                    param,
+                    'write',
+                    hexFile.path
+                ]
+            };
         }
 
         if (flashDevice === 'CMSIS DAP Link') {
-            const binFile = this.getOutputHexOrBinFile(this.targetDOM);
-            if (!binFile) {
+            const hexFile = this.getOutputHexFile(this.targetDOM);
+            if (!hexFile) {
                 showMessage("Please build first and check the hex options", "error");
-                return [];
+                return { useWine: false, args: [] };
             }
-            // OpenOCD-based CMSIS DAP flashing is not yet implemented.
-            return [];
+
+            const openocdCfgPath = this.getOpenocdWriteCfgFile(this.targetDOM);
+            if (!openocdCfgPath) {
+                showMessage("OpenOCD target configuration not found", "error");
+                return { useWine: false, args: [] };
+            }
+
+            return {
+                useWine: false,
+                args: [
+                    resManager.getOpenocdPath(),
+                    '-f', 'interface/cmsis-dap.cfg',
+                    '-f', openocdCfgPath.path,
+                    '-c', `'program "${hexFile.path}" verify reset; shutdown'`,
+                ],
+            };
         }
 
         showMessage("Unsupported flash device", "error");
-        return [];
+        return { useWine: false, args: [] };
     }
 }

@@ -2,14 +2,14 @@
     "name": "keil-assistant-linux",
     "displayName": "Keil Assistant For Linux",
     "description": "An assistant for Keil uVision (Forked and maintained)",
-    "version": "1.2.2",
+    "version": "2.0.0",
     "publisher": "sthudy",
     "author": {
         "name": "STHUDY"
     },
     "keywords": [
         "keil",
-        "mdk",
+        "arm",
         "c51",
         "c251",
         "8051",
@@ -24,10 +24,6 @@
         "Programming Languages",
         "Snippets",
         "Other"
-    ],
-    "activationEvents": [
-        "onView:project",
-        "onCommand:explorer.open"
     ],
     "icon": "res/icons/icon.png",
     "main": "./dist/src/extension.js",
@@ -67,10 +63,10 @@
                         "markdownDescription": "%keil.c251.uv4path.description%",
                         "default": ""
                     },
-                    "KeilAssistantLinux.MDK.Uv4Path": {
+                    "KeilAssistantLinux.ARM.Uv4Path": {
                         "type": "string",
                         "scope": "machine",
-                        "markdownDescription": "%keil.mdk.uv4path.description%",
+                        "markdownDescription": "%keil.arm.uv4path.description%",
                         "default": ""
                     },
                     "KeilAssistantLinux.Base.AutoReplacePath": {
@@ -99,6 +95,7 @@
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.device.description%",
                         "enum": [
+                            "KEIL5 MDK",
                             "ST-LINK V2",
                             "CMSIS DAP Link"
                         ],
@@ -115,6 +112,83 @@
                         "scope": "resource",
                         "markdownDescription": "%keil.flash.openocdPath.description%",
                         "default": "openocd"
+                    },
+                    "KeilAssistantLinux.flash.openocdTargetCfgMap": {
+                        "type": "object",
+                        "scope": "resource",
+                        "markdownDescription": "%keil.flash.openocdTargetCfgMap.description%",
+                        "default": {
+                            "STM32F0*": "target/stm32f0x.cfg",
+                            "STM32F1*": "target/stm32f1x.cfg",
+                            "STM32F2*": "target/stm32f2x.cfg",
+                            "STM32F3*": "target/stm32f3x.cfg",
+                            "STM32F4*": "target/stm32f4x.cfg",
+                            "STM32F7*": "target/stm32f7x.cfg",
+                            "STM32G0*": "target/stm32g0x.cfg",
+                            "STM32G4*": "target/stm32g4x.cfg",
+                            "STM32H7*": "target/stm32h7x.cfg",
+                            "STM32L0*": "target/stm32l0.cfg",
+                            "STM32L1*": "target/stm32l1.cfg",
+                            "STM32L4*": "target/stm32l4x.cfg",
+                            "STM32L5*": "target/stm32l5x.cfg",
+                            "STM32U5*": "target/stm32u5x.cfg",
+                            "STM32WB*": "target/stm32wbx.cfg",
+                            "STM32WL*": "target/stm32wlx.cfg",
+                            "STM32MP1*": "target/stm32mp15x.cfg",
+                            "STM32W108*": "target/stm32w108xx.cfg",
+                            "STM32XL*": "target/stm32xl.cfg",
+                            "GD32VF103*": "target/gd32vf103.cfg",
+                            "GD32E23*": "target/gd32e23x.cfg",
+                            "RP2040*": "target/rp2040.cfg",
+                            "NRF51*": "target/nrf51.cfg",
+                            "NRF52*": "target/nrf52.cfg",
+                            "LPC11*": "target/lpc11xx.cfg",
+                            "LPC12*": "target/lpc12xx.cfg",
+                            "LPC13*": "target/lpc13xx.cfg",
+                            "LPC17*": "target/lpc17xx.cfg",
+                            "LPC18*": "target/lpc1850.cfg",
+                            "LPC2*": "target/lpc2xxx.cfg",
+                            "LPC29*": "target/lpc2900.cfg",
+                            "LPC31*": "target/lpc3131.cfg",
+                            "LPC32*": "target/lpc3250.cfg",
+                            "LPC40*": "target/lpc40xx.cfg",
+                            "LPC43*": "target/lpc4350.cfg",
+                            "LPC54*": "target/lpc54xxx.cfg",
+                            "LPC8*": "target/lpc8xx.cfg",
+                            "LPC84*": "target/lpc84x.cfg",
+                            "STM8L*": "target/stm8l.cfg",
+                            "STM8S*": "target/stm8s.cfg",
+                            "ATSAM3*": "target/at91sam3XXX.cfg",
+                            "ATSAM4*": "target/at91sam4XXX.cfg",
+                            "ATSAMD*": "target/at91samdXX.cfg",
+                            "ATSAME*": "target/atsame5x.cfg",
+                            "ATSAML*": "target/atsaml1x.cfg",
+                            "ATSAMV*": "target/atsamv.cfg",
+                            "CC13*": "target/ti_cc13x0.cfg",
+                            "CC26*": "target/ti_cc26x0.cfg",
+                            "MSP432*": "target/ti_msp432.cfg",
+                            "ESP32S2*": "target/esp32s2.cfg",
+                            "ESP32S3*": "target/esp32s3.cfg",
+                            "ESP32*": "target/esp32.cfg",
+                            "MKE*": "target/ke0x.cfg",
+                            "MKL*": "target/klx.cfg",
+                            "EFM32*": "target/efm32.cfg",
+                            "PSOC4*": "target/psoc4.cfg",
+                            "PSOC5*": "target/psoc5lp.cfg",
+                            "PSOC6*": "target/psoc6.cfg",
+                            "XMC1*": "target/xmc1xxx.cfg",
+                            "XMC4*": "target/xmc4xxx.cfg",
+                            "BLUENRG*": "target/bluenrg-x.cfg",
+                            "MAX32620*": "target/max32620.cfg",
+                            "MAX32625*": "target/max32625.cfg",
+                            "MAX3263*": "target/max3263x.cfg",
+                            "CC2538*": "target/cc2538.cfg",
+                            "NUMICRO*": "target/numicro.cfg",
+                            "SWM050*": "target/swm050.cfg"
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -273,6 +347,7 @@
         "views": {
             "explorer": [
                 {
+                    "icon": "",
                     "id": "project",
                     "name": "Keil uVision Project"
                 }

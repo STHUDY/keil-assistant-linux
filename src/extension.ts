@@ -5,60 +5,52 @@ import { showMessage } from './ui/notifier';
 import { initDiagnosticCollection } from './ui/diagnostics';
 import { ProjectExplorer } from './ui/projectExplorer';
 
-/**
- * Detect whether the given XML snippet represents a C51-family project
- * (Keil C51 or C251) or an ARM project. Used by the "open project"
- * command to verify the matching UV4 path is configured.
- */
-function classifyProject(xmlContent: string): { c51: boolean; arm: boolean } {
-    const hasC51 = xmlContent.includes('TargetOption')
-        && ((xmlContent.includes('Target51') && xmlContent.includes('C51'))
-            || (xmlContent.includes('Target251') && xmlContent.includes('C251')));
-    const hasArm = xmlContent.includes('TargetOption')
-        && (xmlContent.includes('TargetCommonOption') || xmlContent.includes('TargetArmAds'));
-    return { c51: hasC51, arm: hasArm };
+function classifyProject(xmlContent: string): string | undefined {
+    const TargetOption = xmlContent.includes('TargetOption');
+    if (!TargetOption) {
+        return undefined;
+    }
+
+    if (xmlContent.includes('Target51') && xmlContent.includes('C51')) {
+        return 'C51';
+    } else if (xmlContent.includes('Target251') && xmlContent.includes('C251')) {
+        return 'C251';
+    } else if (xmlContent.includes('TargetCommonOption') || xmlContent.includes('TargetArmAds')) {
+        return 'ARM';
+    }
+
+    return undefined;
 }
 
 /**
  * Open a single .uvproj / .uvprojx file via the project explorer. If
- * matching C51 / MDK paths are required but not configured, show a
- * helpful error and abort.
+ * the matching UV4 path isn't configured, show a helpful error and
+ * abort before attempting to load the project.
  */
 async function openProjectWithValidation(
     prjExplorer: ProjectExplorer,
     uvPrjPath: string
 ): Promise<void> {
-    // Quick read so we can warn the user about missing toolchain paths
     try {
         const xmlContent = (await vscode.workspace.fs.readFile(vscode.Uri.file(uvPrjPath))).toString();
-        const { c51, arm } = classifyProject(xmlContent);
+        const projectType = classifyProject(xmlContent);
 
-        if (c51) {
-            const c51Path = vscode.workspace.getConfiguration('KeilAssistantLinux.C51').get<string>('Uv4Path');
-            if (!c51Path) {
-                showMessage(
-                    '请先设置 C51 UV4 路径！\n' +
-                    '1. 打开设置 (Ctrl+,)\n' +
-                    '2. 搜索 "KeilAssistantLinux.C51.Uv4Path"\n' +
-                    '3. 设置 C51 UV4.exe 的绝对路径\n' +
-                    '示例路径：C:\\Keil_v5\\UV4\\UV4.exe',
-                    'error'
-                );
+        if (projectType == 'C51') {
+            const c51Path = ResourceManager.getInstance().getC51UV4Path();
+            if (c51Path === 'null') {
+                showMessage('请先在设置中配置 C51 的 UV4 路径！', 'error');
                 return;
             }
-        }
-
-        if (arm) {
-            const mdkPath = vscode.workspace.getConfiguration('KeilAssistantLinux.MDK').get<string>('Uv4Path');
-            if (!mdkPath) {
-                showMessage(
-                    '请先设置 MDK UV4 路径！\n' +
-                    '1. 打开设置 (Ctrl+,)\n' +
-                    '2. 搜索 "KeilAssistantLinux.MDK.Uv4Path"\n' +
-                    '3. 设置 MDK UV4.exe 的绝对路径\n' +
-                    '示例路径：C:\\Keil_v5\\UV4\\UV4.exe',
-                    'error'
-                );
+        } else if (projectType == 'C251') {
+            const c251Path = ResourceManager.getInstance().getArmC251Path();
+            if (c251Path === 'null') {
+                showMessage('请先在设置中配置 C251 的 UV4 路径！', 'error');
+                return;
+            }
+        } else if (projectType == 'ARM') {
+            const armPath = ResourceManager.getInstance().getArmUV4Path();
+            if (armPath === 'null') {
+                showMessage('请先在设置中配置 ARM 的 UV4 路径！', 'error');
                 return;
             }
         }

@@ -12,9 +12,6 @@ import { windowsPathToLinuxByWinePrefixPath } from '../../util/winePath';
 import { ResourceManager } from '../../ResourceManager';
 import { getDiagnosticCollection } from '../../ui/diagnostics';
 import { TaskExecutor } from './taskExecutor';
-import { C51Target } from './C51Target';
-import { C251Target } from './C251Target';
-import { ArmTarget } from './ArmTarget';
 
 /**
  * A single build target inside a Keil project (e.g. "Debug" / "Release"
@@ -113,8 +110,10 @@ export abstract class Target implements IView {
         return `\${uv4Path} ${action} \${prjPath} -j${this.getJobCount()} -t \${targetName}`;
     }
 
-    /** Command used to flash the device (e.g. st-flash, openocd). */
-    protected abstract getFlashCommand(): string[];
+    /** Command used to flash the device. Returns the raw args plus a flag
+     *  indicating whether the command needs the Wine + Uv4Caller wrapper
+     *  (e.g. KEIL5 MDK) or runs as a plain shell command (e.g. st-flash). */
+    protected abstract getFlashCommand(): { useWine: boolean; args: string[] };
 
     /** Regex matching a single diagnostic line in the build log. */
     protected getDiagnosticRegex(): RegExp {
@@ -129,7 +128,7 @@ export abstract class Target implements IView {
      * inside the configured output folder; targets that don't produce a
      * flashable image can leave this alone.
      */
-    protected getOutputHexOrBinFile(target: any): File | undefined {
+    protected getOutputHexFile(target: any): File | undefined {
         const folderName = this.getOutputFolder(target);
         if (!folderName) {
             return undefined;
@@ -143,9 +142,52 @@ export abstract class Target implements IView {
             return File.fromArray([hexFile]);
         }
 
-        const binFile = fileNoExt + '.bin';
-        if (fs.existsSync(binFile)) {
-            return File.fromArray([binFile]);
+        return undefined;
+    }
+
+    protected findOpenocdScriptRoot(): string | undefined {
+        const candidates = [
+            '/usr/share/openocd/scripts',        // Arch / Debian / Ubuntu
+            '/usr/local/share/openocd/scripts',  // 源码编译默认
+            '/usr/share/openocd',                // 某些发行版
+            '/opt/openocd/share/openocd/scripts',
+        ];
+
+        for (const dir of candidates) {
+            if (
+                fs.existsSync(node_path.join(dir, 'target')) &&
+                fs.existsSync(node_path.join(dir, 'interface'))
+            ) {
+                return dir;
+            }
+        }
+        return undefined;
+    }
+
+    protected matchOpenocdTargetCfg(
+        device: string,
+        map: Record<string, string>
+    ): string | undefined {
+        const d = device.toUpperCase();
+
+        // 1. 精确匹配（key 无 *）
+        for (const [key, cfg] of Object.entries(map)) {
+            if (key.endsWith('*')) continue;
+            if (d === key.toUpperCase()) {
+                return cfg;
+            }
+        }
+
+        // 2. 前缀通配（key 末尾有 *），按 key 长度降序
+        const wildcardKeys = Object.keys(map)
+            .filter(k => k.endsWith('*'))
+            .sort((a, b) => b.length - a.length);
+
+        for (const key of wildcardKeys) {
+            const prefix = key.slice(0, -1).toUpperCase();
+            if (d.startsWith(prefix)) {
+                return map[key];
+            }
         }
 
         return undefined;
@@ -156,8 +198,37 @@ export abstract class Target implements IView {
      * `undefined` for all current toolchains (ST-LINK is handled via
      * `st-flash` instead).
      */
-    protected getOpenocdWriteCfgFile(_target: any): File | undefined {
-        return undefined;
+    protected getOpenocdWriteCfgFile(target: any): File | undefined {
+        const device_name = target['TargetOption']['TargetCommonOption']['Device'];
+        const openocdTargetCfgMap = ResourceManager.getInstance().getOpenocdTargetCfgMap();
+
+        if (!device_name || !openocdTargetCfgMap) {
+            return undefined;
+        }
+
+        // 1. 匹配 cfg 相对路径，如 "target/stm32f0x.cfg"
+        const cfgRelPath = this.matchOpenocdTargetCfg(device_name, openocdTargetCfgMap);
+        if (!cfgRelPath) {
+            return undefined;
+        }
+
+        // 2. 如果是绝对路径，直接校验
+        if (node_path.isAbsolute(cfgRelPath)) {
+            return fs.existsSync(cfgRelPath) ? File.fromArray([cfgRelPath]) : undefined;
+        }
+
+        // 3. 相对路径：拼接 OpenOCD 脚本根目录后校验
+        const scriptRoot = this.findOpenocdScriptRoot();
+        if (!scriptRoot) {
+            return undefined;
+        }
+
+        const cfgAbsPath = node_path.join(scriptRoot, cfgRelPath);
+        if (!fs.existsSync(cfgAbsPath)) {
+            return undefined;
+        }
+
+        return File.fromArray([cfgAbsPath]);
     }
 
     /** Output directory declared in the .uvproj file. C51/C251 return undefined. */
@@ -190,53 +261,6 @@ export abstract class Target implements IView {
     on(event: 'dataChanged', listener: () => void): void;
     on(event: any, listener: () => void): void {
         this._event.on(event, listener);
-    }
-
-    /**
-     * Detect the project family and instantiate the matching subclass.
-     * If the family can't be detected from XML, ask the user via QuickPick.
-     */
-    static async getInstance(prjInfo: KeilProjectInfo, uvInfo: uVisonInfo, targetDOM: any): Promise<Target> {
-        const isC51Project = targetDOM['TargetOption'] &&
-            targetDOM['TargetOption']['Target51'] &&
-            targetDOM['TargetOption']['Target51']['C51'];
-
-        const isC251Project = targetDOM['TargetOption'] &&
-            targetDOM['TargetOption']['Target251'] &&
-            targetDOM['TargetOption']['Target251']['C251'];
-
-        const isArmProject = targetDOM['TargetOption'] &&
-            (targetDOM['TargetOption']['TargetCommonOption'] ||
-                targetDOM['TargetOption']['TargetArmAds']);
-
-        if ((isC51Project || isC251Project) && !isArmProject) {
-            if (isC251Project) {
-                return new C251Target(prjInfo, uvInfo, targetDOM);
-            }
-            return new C51Target(prjInfo, uvInfo, targetDOM);
-        } else if (isArmProject && !isC51Project && !isC251Project) {
-            return new ArmTarget(prjInfo, uvInfo, targetDOM);
-        } else {
-            const selection = await vscode.window.showQuickPick([
-                { label: 'C251 工程', description: '8051 系列单片机工程', target: 'C251' },
-                { label: 'C51 工程', description: '8051 系列单片机工程', target: 'C51' },
-                { label: 'ARM 工程', description: 'ARM 系列单片机工程', target: 'ARM' }
-            ], {
-                placeHolder: '请选择工程类型',
-                title: '无法自动识别工程类型，请手动选择'
-            });
-
-            if (!selection) {
-                throw new Error('未选择工程类型');
-            }
-
-            switch (selection.target) {
-                case 'C51': return new C51Target(prjInfo, uvInfo, targetDOM);
-                case 'C251': return new C251Target(prjInfo, uvInfo, targetDOM);
-                case 'ARM':
-                default: return new ArmTarget(prjInfo, uvInfo, targetDOM);
-            }
-        }
     }
 
     private getDefCppProperties(): any {
@@ -423,25 +447,32 @@ export abstract class Target implements IView {
     // ----- Build / flash / diagnostics -----
 
     build() {
-        this.executeWineTask('build');
+        this.runWineTask('build', this.buildCommandArgs('-b'));
     }
 
     rebuild() {
-        this.executeWineTask('rebuild');
+        this.runWineTask('rebuild', this.buildCommandArgs('-r'));
     }
 
     flash() {
-        this.executeShellTask('flash');
+        const spec = this.getFlashCommand();
+        if (spec.useWine) {
+            this.runWineTask('flash', spec.args);
+        } else {
+            this.runShellTask('flash', spec.args);
+        }
     }
 
-    private executeWineTask(name: 'build' | 'rebuild') {
-        const action: '-b' | '-r' = name === 'build' ? '-b' : '-r';
-        const args = [
+    private buildCommandArgs(action: '-b' | '-r'): string[] {
+        return [
             '--uv4Path', this.getUv4Path(),
             '--prjPath', this.project.uvprjFile.path,
             '--targetName', this.targetName,
             '-c', this.buildCommandLine(action)
         ];
+    }
+
+    private runWineTask(name: 'build' | 'rebuild' | 'flash', args: string[]) {
         TaskExecutor.execute({
             name,
             args,
@@ -453,10 +484,10 @@ export abstract class Target implements IView {
         }, true);
     }
 
-    private executeShellTask(name: 'flash') {
+    private runShellTask(name: 'flash', args: string[]) {
         TaskExecutor.execute({
             name,
-            args: this.getFlashCommand(),
+            args,
             cwd: this.project.uvprjFile.dir,
             diagnosticCollection: getDiagnosticCollection(),
             prjID: this.prjID,

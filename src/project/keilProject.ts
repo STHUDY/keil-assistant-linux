@@ -11,6 +11,7 @@ import { Time } from '../../lib/node_utility/Time';
 import { showMessage } from '../ui/notifier';
 import { IView } from '../ui/views';
 import { Target } from './target/Target';
+import { createTarget } from './target/targetFactory';
 
 function getMD5(data: string): string {
     return crypto.createHash('md5').update(data).digest('hex');
@@ -128,11 +129,11 @@ export class KeilProject implements IView, KeilProjectInfo {
 
         if (Array.isArray(targets)) {
             for (const target of targets) {
-                const newTarget = await Target.getInstance(this, this.uVsionFileInfo, target);
+                const newTarget = await createTarget(this, this.uVsionFileInfo, target);
                 this.targetList.push(newTarget);
             }
         } else {
-            const newTarget = await Target.getInstance(this, this.uVsionFileInfo, targets);
+            const newTarget = await createTarget(this, this.uVsionFileInfo, targets);
             this.targetList.push(newTarget);
         }
 

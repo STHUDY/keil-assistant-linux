@@ -71,9 +71,10 @@ export class TaskExecutor {
 
     static buildCommandLine(params: TaskExecutionParams, useWine: boolean): string {
         const resManager = ResourceManager.getInstance();
-        const args = ['-o', node_path.join(params.cwd, 'uv4.log'), ...params.args];
 
         if (useWine) {
+            // Uv4Caller.exe expects `-o <logfile>` as its first arg
+            const args = ['-o', node_path.join(params.cwd, 'uv4.log'), ...params.args];
             const winePrefix = resManager.getWinePrefixPath();
             const prefixPart = winePrefix !== '' ? `WINEPREFIX="${winePrefix}" ` : '';
             const invokePrefix = `WINEDEBUG=-all ${prefixPart}${resManager.getWinePath()} `;
@@ -89,7 +90,9 @@ export class TaskExecutor {
                 + filterSuffix;
         }
 
-        return args.map((arg) => this.quoteString(arg, '')).join(' ');
+        // Shell mode (e.g. st-flash, openocd): params.args are direct
+        // shell args, no Uv4Caller wrapper involved.
+        return params.args.join(' ');
     }
 
     static execute(params: TaskExecutionParams, useWine: boolean): void {

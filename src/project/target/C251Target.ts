@@ -82,8 +82,21 @@ export class C251Target extends Target {
         return Math.max(1, Math.min(numCPUs, 4));
     }
 
-    protected getFlashCommand(): string[] {
-        showMessage("C51 Unsupported flash device", "error");
-        return [];
+    protected getFlashCommand(): { useWine: boolean; args: string[] } {
+        const resManager = ResourceManager.getInstance();
+        const flashDevice = resManager.getFlashDevice();
+        if (flashDevice === 'KEIL5 MDK') {
+            return {
+                useWine: true,
+                args: [
+                    '--uv4Path', resManager.getArmUV4Path(),
+                    '--prjPath', this.project.uvprjFile.path,
+                    '--targetName', this.targetName,
+                    '-c', '${uv4Path} -f ${prjPath} -j0 -t ${targetName}'
+                ]
+            };
+        }
+        showMessage("C251 Unsupported flash device", "error");
+        return { useWine: false, args: [] };
     }
 }
